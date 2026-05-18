@@ -133,6 +133,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 /* Two-column responsive grid (bag+belasting, top-ships+top-locs) */
 .two-col-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.stats-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:900px){.stats-top-grid{grid-template-columns:1fr}}
 .stat-card{
   background:var(--surface);border:1px solid var(--border);border-radius:18px;
   padding:22px 24px 20px;
@@ -599,23 +601,60 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   .nav-logo{font-size:17px}
 }
 @media(max-width:680px){
-  /* Tighter page padding on phone */
+  /* Page */
   .page{padding-left:16px;padding-right:16px}
-  /* Stat grid goes 2-col on phone */
+  .section-title{font-size:22px;letter-spacing:-0.4px;margin-bottom:4px}
+  .section-sub{font-size:12px;margin-bottom:20px}
+  .page-header{margin-bottom:20px;gap:8px}
+  /* Stat grid → 2×2 */
   .stat-grid{grid-template-columns:1fr 1fr !important}
-  /* Bag + belasting / top ships grids stack vertically */
+  .stat-card{padding:14px 16px 12px}
+  .stat-value{font-size:20px !important;letter-spacing:-0.5px}
+  .stat-sub{font-size:11px;margin-top:4px}
+  .stat-badge{font-size:10px;padding:2px 7px;margin-top:4px}
+  /* Cards */
+  .card{padding:16px}
+  .card-title{font-size:15px;margin-bottom:12px}
+  /* Grids → single col */
   .two-col-grid{grid-template-columns:1fr}
-  /* Bag: stack SVG on top, ring stats below in 2-col mini-grid */
-  .bag-container{flex-direction:column;align-items:center;gap:14px}
+  .stats-top-grid{grid-template-columns:1fr}
+  /* Money bag: stack SVG over mini 2×2 stats */
+  .bag-container{flex-direction:column;align-items:center;gap:12px}
   .bag-svg-wrap{animation:none}
+  .bag-svg-wrap svg{width:100px !important;height:114px !important}
   .bag-ring-stats{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .ring-stat{margin-bottom:0}
-  /* Week days: 4 per row fits phone portrait */
+  .ring-stat-value{font-size:17px;letter-spacing:-0.3px}
+  .ring-stat-label{font-size:10px}
+  /* Fun badges */
+  .fun-badge{font-size:12px;padding:7px 12px;gap:5px}
+  /* Week view */
   .week-day-grid{grid-template-columns:repeat(4,1fr) !important}
-  /* History table scrollable */
+  .week-day{padding:10px 6px;min-height:68px}
+  .week-day-name{font-size:9px}
+  .week-day-date{font-size:12px}
+  /* Table scroll */
   .entry-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
-  /* Weekly: stat grid goes 2-col */
   .weekly-stat-grid{grid-template-columns:1fr 1fr !important}
+  /* Filters */
+  .filter-row{gap:8px}
+  .search-input{min-width:0;flex:0 0 100%}
+  /* Recent entries */
+  .recent-comment{font-size:12px}
+  .recent-meta{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recent-amount{font-size:13px}
+  .recent-dot{width:28px;height:28px;font-size:12px}
+  /* Modal + settings */
+  .modal{padding:24px 20px;border-radius:20px}
+  .modal-title{font-size:19px}
+  .form-grid{grid-template-columns:1fr}
+  .settings-grid{grid-template-columns:1fr}
+  /* Week nav touch targets */
+  .week-nav-btn{width:38px;height:38px;font-size:18px}
+  /* Chart */
+  .chart-month-label{font-size:8px}
+  .chart-legend{gap:10px}
+  .legend-item{font-size:11px}
 }
 
 /* ── Install banner ─────────────────────────────────────────────── */
@@ -1103,7 +1142,7 @@ function MonthlyChart({ entries }) {
                   style={{flex:1,height:`${Math.max(weH,m.weekend>0?3:0)}px`,borderRadius:'4px 4px 0 0',minHeight:m.weekend>0?3:0,transition:'height .5s ease',cursor:'default',position:'relative'}}
                 />
               </div>
-              <div style={{position:'absolute',bottom:0,fontSize:'9px',color:m.total>0?'rgba(245,245,247,0.5)':'rgba(245,245,247,0.2)',letterSpacing:'0.2px',textAlign:'center',width:'100%'}}>
+              <div style={{position:'absolute',bottom:0,fontSize:'9px',color:m.total>0?'var(--text2)':'var(--text3)',letterSpacing:'0.2px',textAlign:'center',width:'100%'}}>
                 {m.m}
               </div>
             </div>
@@ -1560,7 +1599,7 @@ function StatsView({ entries, settings }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'20px'}}>
+      <div className="stats-top-grid">
         <DonutChart weekday={stats.weekdayE} weekend={stats.weekendE}/>
         <div className="card">
           <div className="card-title">Verdeling per tarief</div>
@@ -1807,6 +1846,7 @@ function HistoryView({ entries, onAdd, onEdit, onDelete }) {
             <div className="empty-sub">Try adjusting your filters or log a new work session.</div>
           </div>
         ) : (
+          <div className="entry-table-scroll">
           <table className="entry-table">
             <thead>
               <tr>
@@ -1854,6 +1894,7 @@ function HistoryView({ entries, onAdd, onEdit, onDelete }) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
