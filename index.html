@@ -2,7 +2,12 @@
 <html lang="nl-BE">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ω Omega">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
 <title>Ω Omega Tracker</title>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -50,7 +55,7 @@ html[data-theme="light"] .fun-badge.badge-level{background:rgba(175,82,222,0.08)
 html[data-theme="light"] .fun-badge.badge-record{background:rgba(52,199,89,0.08)}
 html[data-theme="light"] .fun-badge.badge-ship{background:rgba(0,122,255,0.08)}
 
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 input[type="time"]::-webkit-datetime-edit-ampm-field{display:none !important;width:0;overflow:hidden}
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -63,8 +68,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* NAV */
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
-  height:52px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 32px;
+  height:calc(52px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:env(safe-area-inset-top);
+  padding-left:max(32px, env(safe-area-inset-left));
+  padding-right:max(32px, env(safe-area-inset-right));
   background:var(--nav-bg);
   backdrop-filter:blur(20px) saturate(180%);
   -webkit-backdrop-filter:blur(20px) saturate(180%);
@@ -102,7 +110,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn-sm{padding:5px 12px;font-size:12px;border-radius:14px}
 
 /* LAYOUT */
-.page{padding:80px 32px 48px;max-width:1200px;margin:0 auto}
+.page{
+  padding:calc(80px + env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left));
+  max-width:1200px;margin:0 auto;
+}
 .section-title{font-size:28px;font-weight:700;letter-spacing:-0.8px;margin-bottom:6px}
 .section-sub{font-size:14px;color:var(--text2);margin-bottom:28px}
 
@@ -226,7 +237,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .input{
   background:rgba(255,255,255,0.05);border:1px solid var(--border2);
   border-radius:10px;padding:10px 14px;color:var(--text);
-  font-size:14px;font-family:var(--font);outline:none;
+  font-size:16px;font-family:var(--font);outline:none;
   transition:border-color .15s;width:100%;
 }
 .input:focus{border-color:var(--gold)}
@@ -394,15 +405,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 /* ── AUTH SCREEN ────────────────────────────────────────────────── */
 .auth-page{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.07) 0%, transparent 70%), var(--bg);
-  padding:20px;
+  padding:max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
 }
 .auth-card{
   width:100%;max-width:400px;
-  background:#101010;border:1px solid var(--border2);border-radius:28px;
+  background:var(--modal-bg);border:1px solid var(--border2);border-radius:28px;
   padding:40px 36px 36px;
-  box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03);
+  box-shadow:0 40px 120px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03);
   animation:slideInCard .35s ease both;
 }
 .auth-logo{
@@ -421,9 +432,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .auth-field{margin-bottom:14px}
 .auth-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;display:block}
 .auth-input{
-  width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);
+  width:100%;background:var(--input-bg);border:1px solid var(--border2);
   border-radius:12px;padding:12px 16px;color:var(--text);
-  font-size:15px;font-family:var(--font);outline:none;transition:border-color .15s;
+  font-size:16px;font-family:var(--font);outline:none;transition:border-color .15s;
 }
 .auth-input:focus{border-color:var(--gold)}
 .auth-submit{
@@ -1943,11 +1954,20 @@ function LoadingScreen() {
 
 // ── Auth Modal ───────────────────────────────────────────────────────
 function AuthPage({ onLogin }) {
-  const [tab, setTab]   = useState('login');
-  const [user, setUser] = useState('');
-  const [pass, setPass] = useState('');
-  const [err,  setErr]  = useState('');
-  const [busy, setBusy] = useState(false);
+  const [tab,      setTab]      = useState('login');
+  const [user,     setUser]     = useState('');
+  const [pass,     setPass]     = useState('');
+  const [err,      setErr]      = useState('');
+  const [busy,     setBusy]     = useState(false);
+  // Step 2 — personalise after registration
+  const [regData,  setRegData]  = useState(null); // { token, username }
+  const [pickTheme, setPickTheme] = useState('dark');
+  const [pickColor, setPickColor] = useState('#f0a500');
+
+  // Live-preview theme while on the personalise screen
+  useEffect(() => {
+    if (regData) applyTheme(pickTheme, pickColor);
+  }, [pickTheme, pickColor, regData]);
 
   async function submit(e) {
     e.preventDefault();
@@ -1956,18 +1976,25 @@ function AuthPage({ onLogin }) {
       const endpoint = tab === 'login' ? '/api/login' : '/api/register';
       let res;
       try {
-        res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: user, password: pass }) });
+        res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user, password: pass }),
+        });
       } catch {
         throw new Error('Kan server niet bereiken — zorg dat je de app opent via http://localhost:3000');
       }
       const ct = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) {
+      if (!ct.includes('application/json'))
         throw new Error('Verkeerde server — open de app via http://localhost:3000 (niet poort 5000 of 5173)');
-      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       localStorage.setItem('omega_token', data.token);
-      onLogin(data.token, data.username);
+      if (tab === 'register') {
+        setRegData({ token: data.token, username: data.username });
+      } else {
+        onLogin(data.token, data.username);
+      }
     } catch (ex) {
       setErr(ex.message);
     } finally {
@@ -1975,6 +2002,68 @@ function AuthPage({ onLogin }) {
     }
   }
 
+  async function finishSetup() {
+    setBusy(true);
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${regData.token}` },
+        body: JSON.stringify({ ...DEF_SETTINGS, theme: pickTheme, accentColor: pickColor }),
+      });
+    } catch { /* non-fatal */ } finally { setBusy(false); }
+    onLogin(regData.token, regData.username);
+  }
+
+  // ── Step 2: Personalise ───────────────────────────────────────────────
+  if (regData) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card" style={{maxWidth:'420px'}}>
+          <div className="auth-logo" style={{marginBottom:'4px'}}>🎉</div>
+          <div style={{fontSize:'22px',fontWeight:'800',letterSpacing:'-0.5px',textAlign:'center',marginBottom:'4px',color:'var(--text)'}}>
+            Welkom, {regData.username}!
+          </div>
+          <div className="auth-tagline" style={{marginBottom:'28px'}}>Maak je app jouw eigen voor je begint.</div>
+
+          {/* Theme picker */}
+          <div style={{marginBottom:'20px'}}>
+            <div className="auth-label" style={{marginBottom:'10px'}}>Thema</div>
+            <div className="theme-toggle-row">
+              <button className={`theme-btn${pickTheme==='dark'?' active':''}`} onClick={() => setPickTheme('dark')}>🌙 Donker</button>
+              <button className={`theme-btn${pickTheme==='light'?' active':''}`} onClick={() => setPickTheme('light')}>☀️ Licht</button>
+            </div>
+          </div>
+
+          {/* Colour picker */}
+          <div style={{marginBottom:'28px'}}>
+            <div className="auth-label" style={{marginBottom:'10px'}}>Accentkleur</div>
+            <div className="color-swatches">
+              {COLOR_PRESETS.map(p => (
+                <div key={p.hex}
+                  className={`color-swatch${pickColor===p.hex?' active':''}`}
+                  style={{background:p.hex,width:'34px',height:'34px'}}
+                  title={p.name}
+                  onClick={() => setPickColor(p.hex)}
+                />
+              ))}
+              <div className="color-swatch-custom" style={{width:'34px',height:'34px'}} title="Eigen kleur kiezen">
+                <input type="color" value={pickColor} onChange={e => setPickColor(e.target.value)}/>
+              </div>
+            </div>
+          </div>
+
+          <button className="auth-submit" onClick={finishSetup} disabled={busy}>
+            {busy ? 'Even wachten…' : 'Aan de slag →'}
+          </button>
+          <div className="auth-footer" style={{marginTop:'14px'}}>
+            Je kunt dit later altijd aanpassen via ⚙ Instellingen.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: Login / Register ──────────────────────────────────────────
   return (
     <div className="auth-page">
       <div className="auth-card">
