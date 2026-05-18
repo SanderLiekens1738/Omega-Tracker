@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="Ω Omega">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/omega-icon.svg">
 <title>Ω Omega Tracker</title>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -96,7 +98,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .nav-tab{
   padding:5px 16px;border-radius:7px;border:none;background:transparent;
   color:var(--text2);font-size:13px;font-family:var(--font);font-weight:500;
-  cursor:pointer;transition:all .2s;letter-spacing:-0.1px;
+  cursor:pointer;transition:background .2s ease, color .2s ease;letter-spacing:-0.1px;
 }
 .nav-tab:hover{color:var(--text);background:var(--surface2)}
 .nav-tab.active{background:var(--surface2);color:var(--text)}
@@ -104,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn{
   padding:7px 18px;border-radius:20px;border:none;
   font-size:13px;font-family:var(--font);font-weight:600;
-  cursor:pointer;transition:all .18s;letter-spacing:-0.1px;
+  cursor:pointer;transition:background .18s ease, transform .15s ease, box-shadow .18s ease, color .15s ease;letter-spacing:-0.1px;
 }
 .btn-primary{
   background:var(--gold);color:#000;
@@ -130,15 +132,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 .stat-card{
   background:var(--surface);border:1px solid var(--border);border-radius:18px;
-  padding:22px 24px 20px;transition:all .25s;cursor:default;
-  position:relative;overflow:hidden;
+  padding:22px 24px 20px;
+  transition:transform .28s ease, background .22s ease, border-color .22s ease, box-shadow .28s ease;
+  cursor:default;position:relative;overflow:hidden;
 }
 .stat-card::before{
   content:'';position:absolute;inset:0;border-radius:18px;
   background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 60%);
   pointer-events:none;
 }
-.stat-card:hover{transform:translateY(-3px);border-color:var(--border2);background:var(--surface2);box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--border2);background:var(--surface2);box-shadow:0 6px 22px rgba(0,0,0,0.22)}
 .stat-label{font-size:12px;font-weight:500;color:var(--text2);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:10px}
 .stat-value{font-size:32px;font-weight:700;letter-spacing:-1.5px;line-height:1}
 .stat-sub{font-size:12px;color:var(--text3);margin-top:8px}
@@ -366,12 +369,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @keyframes pop-in{0%{transform:scale(0);opacity:0}80%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
 @keyframes glow-ring{0%,100%{box-shadow:0 0 0 0 rgba(240,165,0,0.0)}50%{box-shadow:0 0 32px 8px rgba(240,165,0,0.22)}}
 
-.stat-card{animation:slideInCard .5s ease both}
+.stat-card{animation:slideInCard .5s ease forwards}
 .stat-card:nth-child(1){animation-delay:.06s}
 .stat-card:nth-child(2){animation-delay:.12s}
 .stat-card:nth-child(3){animation-delay:.18s}
 .stat-card:nth-child(4){animation-delay:.24s}
-.stat-card:hover{animation:none}
 
 /* ── FUN BADGES ─────────────────────────────────────────────────── */
 .fun-badges-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
@@ -593,6 +595,34 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   .nav-desktop-only{display:none !important}
   .nav-logo{font-size:17px}
 }
+
+/* ── Install banner ─────────────────────────────────────────────── */
+.install-banner{
+  position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);
+  background:var(--modal-bg);border:1px solid var(--border2);
+  border-radius:20px;padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  max-width:360px;width:calc(100% - 40px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.28);z-index:350;
+  animation:slideInCard .3s ease;
+}
+html[data-theme="light"] .install-banner{box-shadow:0 8px 32px rgba(0,0,0,0.14)}
+.install-banner-icon{font-size:26px;flex-shrink:0}
+.install-banner-text{flex:1;min-width:0}
+.install-banner-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.install-banner-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.install-btn{
+  padding:7px 14px;border-radius:12px;border:none;
+  background:var(--gold);color:#000;font-size:12px;font-family:var(--font);
+  font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap;
+}
+.install-btn:hover{opacity:.88}
+.install-dismiss{
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);font-size:18px;line-height:1;
+  padding:2px 0 2px 4px;flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -626,7 +656,7 @@ const SEED = [
   {id:'1',date:'2026-04-08',vessel:'A85',location:'Sidmar Gent',jobType:'Lossen',startTime:'06:00',endTime:'10:00',totalHours:4,earningsInclVAT:100,isSat:false,isSun:false},
   {id:'2',date:'2026-04-08',vessel:'A105',location:'Euroports Antwerpen',jobType:'Laden',startTime:'22:00',endTime:'23:59',totalHours:2,earningsInclVAT:50,isSat:false,isSun:false},
   {id:'3',date:'2026-04-09',vessel:'A105',location:'Euroports Antwerpen',jobType:'Laden',startTime:'00:00',endTime:'05:30',totalHours:5.5,earningsInclVAT:137.5,isSat:false,isSun:false},
-  {id:'4',date:'2026-04-10',vessel:'A100',location:'Cargill Antwerpen',jobType:'Lossen',startTime:'06:00',endTime:'20:00',totalHours:14,earningsInclVAT:350,isSat:false,isSun:false},
+  {id:'4',date:'2026-04-10',vessel:'A100',location:'Cargill in Antwerpen',jobType:'Lossen',startTime:'06:00',endTime:'20:00',totalHours:14,earningsInclVAT:350,isSat:false,isSun:false},
   {id:'5',date:'2026-04-11',vessel:'Antverpia 5',location:'VVM Cement in Antwerpen',jobType:'Lossen',startTime:'06:00',endTime:'13:00',totalHours:7,earningsInclVAT:218.75,isSat:true,isSun:false},
   {id:'6',date:'2026-04-13',vessel:'A14',location:'Euroports Antwerpen',jobType:'Laden',startTime:'12:00',endTime:'18:30',totalHours:6.5,earningsInclVAT:162.5,isSat:false,isSun:false},
   {id:'7',date:'2026-04-16',vessel:'A103',location:'TC Fabriek Tessenderlo',jobType:'Laden',startTime:'06:00',endTime:'22:00',totalHours:16,earningsInclVAT:400,isSat:false,isSun:false},
@@ -637,8 +667,8 @@ const SEED = [
   {id:'12',date:'2026-04-29',vessel:'Antverpia 68',location:'BASF',jobType:'Lossen',startTime:'00:00',endTime:'04:30',totalHours:4.5,earningsInclVAT:112.5,isSat:false,isSun:false},
   {id:'13',date:'2026-05-04',vessel:'Antverpia 66',location:'Euro-Silo Gent',jobType:'Laden',startTime:'18:00',endTime:'23:59',totalHours:6,earningsInclVAT:150,isSat:false,isSun:false},
   {id:'14',date:'2026-05-05',vessel:'Antverpia 66',location:'Euro-Silo Gent',jobType:'Laden',startTime:'00:00',endTime:'05:30',totalHours:5.5,earningsInclVAT:137.5,isSat:false,isSun:false},
-  {id:'15',date:'2026-05-11',vessel:'Nancy',location:'Cargill Antwerpen',jobType:'Lossen',startTime:'06:00',endTime:'12:59',totalHours:7,earningsInclVAT:175,isSat:false,isSun:false},
-  {id:'16',date:'2026-05-11',vessel:'Antverpia 55',location:'Cargill Antwerpen',jobType:'Lossen',startTime:'13:00',endTime:'20:00',totalHours:7,earningsInclVAT:175,isSat:false,isSun:false},
+  {id:'15',date:'2026-05-11',vessel:'Nancy',location:'Cargill in Antwerpen',jobType:'Lossen',startTime:'06:00',endTime:'12:59',totalHours:7,earningsInclVAT:175,isSat:false,isSun:false},
+  {id:'16',date:'2026-05-11',vessel:'Antverpia 55',location:'Cargill in Antwerpen',jobType:'Lossen',startTime:'13:00',endTime:'20:00',totalHours:7,earningsInclVAT:175,isSat:false,isSun:false},
   {id:'17',date:'2026-05-16',vessel:'Antverpia 107',location:'Eurosilo Gent',jobType:'Lossen',startTime:'06:00',endTime:'15:00',totalHours:9,earningsInclVAT:281.25,isSat:true,isSun:false},
 ];
 
@@ -2016,6 +2046,56 @@ function LoadingScreen() {
   );
 }
 
+// ── Install banner (PWA) ─────────────────────────────────────────────
+function InstallBanner() {
+  const [show, setShow] = useState(false);
+  const [prompt, setPrompt] = useState(null); // Chrome beforeinstallprompt
+
+  useEffect(() => {
+    if (localStorage.getItem('pwa_dismissed')) return;
+    const isStandalone =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) return; // already installed
+
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      // Show after a short delay so it doesn't pop up immediately
+      const t = setTimeout(() => setShow(true), 4000);
+      return () => clearTimeout(t);
+    }
+    // Chrome / Android
+    function onPrompt(e) { e.preventDefault(); setPrompt(e); setShow(true); }
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
+
+  function dismiss() { localStorage.setItem('pwa_dismissed', '1'); setShow(false); }
+
+  async function install() {
+    if (prompt) { await prompt.prompt(); prompt.userChoice; }
+    dismiss();
+  }
+
+  if (!show) return null;
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  return (
+    <div className="install-banner">
+      <div className="install-banner-icon">📱</div>
+      <div className="install-banner-text">
+        <div className="install-banner-title">Installeer Omega Tracker</div>
+        {isIOS
+          ? <div className="install-banner-sub">Tik op <strong>Delen</strong> ⎋ → <strong>Zet op beginscherm</strong></div>
+          : <div className="install-banner-sub">Gebruik de app als native app op je telefoon</div>
+        }
+      </div>
+      {!isIOS && <button className="install-btn" onClick={install}>Installeer</button>}
+      <button className="install-dismiss" onClick={dismiss} title="Sluiten">✕</button>
+    </div>
+  );
+}
+
 // ── Auth Modal ───────────────────────────────────────────────────────
 function AuthPage({ onLogin }) {
   const [tab,      setTab]      = useState('login');
@@ -2479,6 +2559,7 @@ function App() {
           onSave={s => { handleSaveSettings(s); setShowSettings(false); }}
         />
       )}
+      <InstallBanner/>
       {toast && <Toast msg={toast.msg} icon={toast.icon}/>}
     </>
   );
