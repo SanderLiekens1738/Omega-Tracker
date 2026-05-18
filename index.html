@@ -130,6 +130,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* HERO GRID */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+/* Two-column responsive grid (bag+belasting, top-ships+top-locs) */
+.two-col-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
 .stat-card{
   background:var(--surface);border:1px solid var(--border);border-radius:18px;
   padding:22px 24px 20px;
@@ -189,8 +191,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   transition:height .5s ease;cursor:default;
   position:relative;
 }
-.chart-bar.weekday{background:linear-gradient(180deg,var(--gold),rgba(240,165,0,0.6))}
-.chart-bar.weekend{background:linear-gradient(180deg,var(--blue),rgba(10,132,255,0.6))}
+.chart-bar.weekday{background:linear-gradient(180deg,var(--gold),rgba(var(--gold-rgb),.55))}
+.chart-bar.weekend{background:linear-gradient(180deg,var(--blue),rgba(10,132,255,.55))}
 .chart-bar:hover::after{
   content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
   background:rgba(30,30,30,0.95);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;
@@ -595,6 +597,25 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   .nav-desktop-only{display:none !important}
   .nav-logo{font-size:17px}
 }
+@media(max-width:680px){
+  /* Tighter page padding on phone */
+  .page{padding-left:16px;padding-right:16px}
+  /* Stat grid goes 2-col on phone */
+  .stat-grid{grid-template-columns:1fr 1fr !important}
+  /* Bag + belasting / top ships grids stack vertically */
+  .two-col-grid{grid-template-columns:1fr}
+  /* Bag: stack SVG on top, ring stats below in 2-col mini-grid */
+  .bag-container{flex-direction:column;align-items:center;gap:14px}
+  .bag-svg-wrap{animation:none}
+  .bag-ring-stats{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ring-stat{margin-bottom:0}
+  /* Week days: 4 per row fits phone portrait */
+  .week-day-grid{grid-template-columns:repeat(4,1fr) !important}
+  /* History table scrollable */
+  .entry-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+  /* Weekly: stat grid goes 2-col */
+  .weekly-stat-grid{grid-template-columns:1fr 1fr !important}
+}
 
 /* ── Install banner ─────────────────────────────────────────────── */
 .install-banner{
@@ -814,37 +835,37 @@ function DonutChart({ weekday, weekend }) {
       <div className="card-title">Weekday vs Weekend</div>
       <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
         <svg width="140" height="140" style={{flexShrink:0}}>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="16"/>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f0a500" strokeWidth="16"
+          <circle cx={cx} cy={cy} r={r} fill="none" style={{stroke:'var(--border2)'}} strokeWidth="16"/>
+          <circle cx={cx} cy={cy} r={r} fill="none" style={{stroke:'var(--gold)'}} strokeWidth="16"
             strokeLinecap="butt"
             strokeDasharray={`${wdDash} ${circ - wdDash}`}
             strokeDashoffset={circ * 0.25}/>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#0a84ff" strokeWidth="16"
+          <circle cx={cx} cy={cy} r={r} fill="none" style={{stroke:'var(--blue)'}} strokeWidth="16"
             strokeLinecap="butt"
             strokeDasharray={`${weDash} ${circ - weDash}`}
             strokeDashoffset={circ * 0.25 - wdDash}/>
-          <text x={cx} y={cy - 6} textAnchor="middle" fill="#f5f5f7" fontSize="17" fontWeight="700" fontFamily="-apple-system,sans-serif">
+          <text x={cx} y={cy - 6} textAnchor="middle" style={{fill:'var(--text)'}} fontSize="17" fontWeight="700" fontFamily="-apple-system,sans-serif">
             {(wdPct*100).toFixed(0)}%
           </text>
-          <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(245,245,247,0.4)" fontSize="9" fontFamily="-apple-system,sans-serif">
+          <text x={cx} y={cy + 10} textAnchor="middle" style={{fill:'var(--text3)'}} fontSize="9" fontFamily="-apple-system,sans-serif">
             weekday
           </text>
         </svg>
         <div style={{flex:1}}>
           <div style={{marginBottom:'14px'}}>
             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-              <div style={{width:'10px',height:'10px',borderRadius:'3px',background:'#f0a500',flexShrink:0}}/>
+              <div style={{width:'10px',height:'10px',borderRadius:'3px',background:'var(--gold)',flexShrink:0}}/>
               <span style={{fontSize:'12px',color:'var(--text2)'}}>Weekday</span>
             </div>
-            <div style={{fontSize:'20px',fontWeight:'700',letterSpacing:'-0.5px',color:'#f0a500'}}>€{weekday.toFixed(2)}</div>
+            <div style={{fontSize:'20px',fontWeight:'700',letterSpacing:'-0.5px',color:'var(--gold)'}}>€{weekday.toFixed(2)}</div>
             <div style={{fontSize:'11px',color:'var(--text3)'}}>{(wdPct*100).toFixed(1)}% of total</div>
           </div>
           <div>
             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-              <div style={{width:'10px',height:'10px',borderRadius:'3px',background:'#0a84ff',flexShrink:0}}/>
+              <div style={{width:'10px',height:'10px',borderRadius:'3px',background:'var(--blue)',flexShrink:0}}/>
               <span style={{fontSize:'12px',color:'var(--text2)'}}>Weekend</span>
             </div>
-            <div style={{fontSize:'20px',fontWeight:'700',letterSpacing:'-0.5px',color:'#0a84ff'}}>€{weekend.toFixed(2)}</div>
+            <div style={{fontSize:'20px',fontWeight:'700',letterSpacing:'-0.5px',color:'var(--blue)'}}>€{weekend.toFixed(2)}</div>
             <div style={{fontSize:'11px',color:'var(--text3)'}}>{(wePct*100).toFixed(1)}% of total</div>
           </div>
         </div>
@@ -933,9 +954,9 @@ function MoneyBagGoal({ progress, earned, goal, netProfit, vatCollected }) {
           <svg viewBox="0 0 160 182" width="145" height="166" style={{overflow:'visible'}}>
             <defs>
               <linearGradient id="goldLiqGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffe566"/>
-                <stop offset="60%" stopColor="#f0a500"/>
-                <stop offset="100%" stopColor="#b87200"/>
+                <stop offset="0%" style={{stopColor:'var(--gold2)'}}/>
+                <stop offset="60%" style={{stopColor:'var(--gold)'}}/>
+                <stop offset="100%" style={{stopColor:'var(--gold)'}}/>
               </linearGradient>
               <linearGradient id="bagBodyGrad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" style={{stopColor:'var(--bag-stop1)'}}/>
@@ -1059,8 +1080,8 @@ function MonthlyChart({ entries }) {
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
         <div className="card-title" style={{marginBottom:0}}>Monthly Earnings <span>2026</span></div>
         <div className="chart-legend">
-          <div className="legend-item"><div className="legend-dot" style={{background:'#f0a500'}}/> Weekday</div>
-          <div className="legend-item"><div className="legend-dot" style={{background:'#0a84ff'}}/> Weekend</div>
+          <div className="legend-item"><div className="legend-dot" style={{background:'var(--gold)'}}/> Weekday</div>
+          <div className="legend-item"><div className="legend-dot" style={{background:'var(--blue)'}}/> Weekend</div>
         </div>
       </div>
       <div style={{display:'flex',alignItems:'flex-end',gap:'4px',height:'140px',paddingBottom:'28px',position:'relative'}}>
@@ -1561,7 +1582,7 @@ function StatsView({ entries, settings }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'20px'}}>
+      <div className="two-col-grid" style={{marginBottom:'20px'}}>
         <div className="card">
           <div className="card-title">Top Schepen ⚓</div>
           {stats.topVessels.length === 0
@@ -1682,7 +1703,7 @@ function Dashboard({ entries, settings, onAdd }) {
 
       <FunBadges entries={entries}/>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'28px'}}>
+      <div className="two-col-grid">
         <MoneyBagGoal
           progress={stats.progress}
           earned={stats.totalInclVAT}
@@ -1943,7 +1964,7 @@ function WeeklyView({ entries, settings, onAdd }) {
         <button className="btn btn-primary" onClick={onAdd}>+ Log Work</button>
       </div>
 
-      <div className="stat-grid" style={{gridTemplateColumns:'repeat(4,1fr)',marginBottom:'20px'}}>
+      <div className="stat-grid" style={{marginBottom:'20px'}}>
         <StatCard label="Week Earnings" value={fmtDec(weekTotal)} sub="Incl. VAT" badge="This Week" badgeClass="badge-gold"/>
         <StatCard label="Excl. VAT" value={fmtDec(weekExcl)} sub="Net before tax"/>
         <StatCard label="VAT" value={fmtDec(weekVAT)} sub="To set aside" accent="var(--red)"/>
@@ -1977,6 +1998,7 @@ function WeeklyView({ entries, settings, onAdd }) {
 
       {weekDays.some(d => d.entries.length > 0) && (
         <div className="card" style={{marginTop:'20px',padding:0,overflow:'hidden'}}>
+          <div className="entry-table-scroll">
           <table className="entry-table">
             <thead>
               <tr>
@@ -2004,6 +2026,7 @@ function WeeklyView({ entries, settings, onAdd }) {
               )))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
       <InvoiceTextBox weekEntries={weekDays.flatMap(d => d.entries)}/>
