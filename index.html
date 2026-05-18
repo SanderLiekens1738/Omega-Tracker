@@ -25,6 +25,10 @@
   --nav-bg:rgba(0,0,0,0.75);--modal-bg:#141414;--input-bg:rgba(255,255,255,0.05);
   --scrollbar:rgba(255,255,255,0.15);
   --font:-apple-system,'SF Pro Display',BlinkMacSystemFont,'Segoe UI',sans-serif;
+  /* Money bag SVG tokens */
+  --bag-stop1:rgba(255,255,255,0.08);--bag-stop2:rgba(255,255,255,0.02);
+  --bag-neck:rgba(255,255,255,0.07);--bag-knot:rgba(255,255,255,0.08);
+  --bag-stroke:rgba(240,165,0,0.38);
 }
 /* ── Light mode ─────────────────────────────────────────────── */
 html[data-theme="light"]{
@@ -35,6 +39,10 @@ html[data-theme="light"]{
   --green:#34c759;--blue:#007aff;--red:#ff3b30;--purple:#af52de;
   --nav-bg:rgba(242,242,247,0.82);--modal-bg:#ffffff;--input-bg:rgba(0,0,0,0.04);
   --scrollbar:rgba(0,0,0,0.18);
+  /* Money bag SVG tokens – light */
+  --bag-stop1:rgba(0,0,0,0.05);--bag-stop2:rgba(0,0,0,0.02);
+  --bag-neck:rgba(0,0,0,0.06);--bag-knot:rgba(0,0,0,0.08);
+  --bag-stroke:rgba(200,130,0,0.55);
 }
 /* Light-mode specific overrides */
 html[data-theme="light"] .nav{border-bottom-color:rgba(0,0,0,0.1)}
@@ -166,7 +174,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .ring-stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
 .ring-stat-value{font-size:22px;font-weight:700;letter-spacing:-0.8px}
 .ring-stat-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.progress-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-bar{height:4px;background:var(--surface2);border-radius:2px;margin-top:6px;overflow:hidden}
 .progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .6s ease}
 
 /* CHART */
@@ -235,7 +243,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:12px;font-weight:500;color:var(--text2);letter-spacing:0.2px;text-transform:uppercase}
 .input{
-  background:rgba(255,255,255,0.05);border:1px solid var(--border2);
+  background:var(--input-bg);border:1px solid var(--border2);
   border-radius:10px;padding:10px 14px;color:var(--text);
   font-size:16px;font-family:var(--font);outline:none;
   transition:border-color .15s;width:100%;
@@ -512,13 +520,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.14)}
 .color-swatch-custom{
   width:30px;height:30px;border-radius:50%;cursor:pointer;
-  border:2px solid var(--border2);
-  background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);
-  overflow:hidden;position:relative;flex-shrink:0;transition:all .15s;
+  background:conic-gradient(
+    hsl(0,100%,55%),hsl(40,100%,55%),hsl(80,100%,45%),
+    hsl(140,100%,40%),hsl(180,100%,45%),hsl(220,100%,55%),
+    hsl(260,100%,55%),hsl(300,100%,55%),hsl(340,100%,55%),hsl(360,100%,55%)
+  );
+  box-shadow:inset 0 0 0 7px var(--modal-bg);
+  position:relative;flex-shrink:0;transition:all .15s;
 }
-.color-swatch-custom:hover{transform:scale(1.18)}
+.color-swatch-custom:hover{transform:scale(1.18);box-shadow:inset 0 0 0 5px var(--modal-bg)}
 .color-swatch-custom input{
-  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border-radius:50%;
 }
 .theme-nav-btn{
   width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);
@@ -527,6 +539,60 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   flex-shrink:0;
 }
 .theme-nav-btn:hover{background:var(--surface2);transform:scale(1.1)}
+
+/* ── Hamburger / mobile nav ─────────────────────────────────────── */
+.hamburger-btn{
+  display:none;width:36px;height:36px;border-radius:10px;
+  border:1px solid var(--border2);background:var(--surface);
+  cursor:pointer;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;flex-shrink:0;transition:background .18s;padding:0;
+}
+.hamburger-btn:hover{background:var(--surface2)}
+.hamburger-btn span{
+  display:block;width:16px;height:2px;background:var(--text);
+  border-radius:2px;transition:all .2s;
+}
+.hamburger-btn.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger-btn.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.mobile-menu{
+  position:fixed;top:calc(52px + env(safe-area-inset-top));
+  left:0;right:0;z-index:98;
+  background:var(--modal-bg);border-bottom:1px solid var(--border);
+  box-shadow:0 12px 40px rgba(0,0,0,0.18);
+  animation:slideInCard .2s ease both;
+  overflow-y:auto;
+  max-height:calc(100dvh - 52px - env(safe-area-inset-top));
+}
+.mobile-menu-inner{
+  padding:12px 16px calc(16px + env(safe-area-inset-bottom));
+}
+.mobile-menu-tabs{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.mobile-menu-tab{
+  padding:13px 16px;border-radius:12px;border:none;
+  background:transparent;color:var(--text2);font-family:var(--font);
+  font-size:15px;font-weight:500;cursor:pointer;transition:all .18s;
+  text-align:left;display:flex;align-items:center;gap:10px;
+}
+.mobile-menu-tab:hover{background:var(--surface);color:var(--text)}
+.mobile-menu-tab.active{background:var(--surface2);color:var(--text);font-weight:600}
+.mobile-menu-divider{height:1px;background:var(--border);margin:8px 0}
+.mobile-menu-actions{display:flex;flex-direction:column;gap:2px}
+.mobile-menu-action{
+  padding:13px 16px;border-radius:12px;border:none;
+  background:transparent;color:var(--text2);font-family:var(--font);
+  font-size:15px;font-weight:500;cursor:pointer;transition:all .18s;
+  text-align:left;display:flex;align-items:center;gap:10px;width:100%;
+}
+.mobile-menu-action:hover{background:var(--surface);color:var(--text)}
+.mobile-menu-action.danger{color:var(--red)}
+.mobile-menu-action.danger:hover{background:rgba(255,69,58,0.08)}
+@media(max-width:700px){
+  .hamburger-btn{display:flex}
+  .nav-tabs{display:none}
+  .nav-desktop-only{display:none !important}
+  .nav-logo{font-size:17px}
+}
 </style>
 </head>
 <body>
@@ -842,8 +908,8 @@ function MoneyBagGoal({ progress, earned, goal, netProfit, vatCollected }) {
                 <stop offset="100%" stopColor="#b87200"/>
               </linearGradient>
               <linearGradient id="bagBodyGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.07)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0.02)"/>
+                <stop offset="0%" style={{stopColor:'var(--bag-stop1)'}}/>
+                <stop offset="100%" style={{stopColor:'var(--bag-stop2)'}}/>
               </linearGradient>
               <clipPath id="bagBodyClip">
                 <path d="M 80,36 C 118,36 144,60 144,94 C 144,136 118,168 80,168 C 42,168 16,136 16,94 C 16,60 42,36 80,36 Z"/>
@@ -852,15 +918,15 @@ function MoneyBagGoal({ progress, earned, goal, netProfit, vatCollected }) {
 
             {/* Bag neck */}
             <rect x="63" y="6" width="34" height="22" rx="9"
-              fill="rgba(255,255,255,0.06)" stroke="rgba(240,165,0,0.4)" strokeWidth="1.5"/>
+              style={{fill:'var(--bag-neck)',stroke:'var(--bag-stroke)'}} strokeWidth="1.5"/>
             {/* Knot */}
             <ellipse cx="80" cy="34" rx="20" ry="9"
-              fill="rgba(255,255,255,0.07)" stroke="rgba(240,165,0,0.45)" strokeWidth="1.5"/>
+              style={{fill:'var(--bag-knot)',stroke:'var(--bag-stroke)'}} strokeWidth="1.5"/>
 
             {/* Bag body */}
             <path d="M 80,36 C 118,36 144,60 144,94 C 144,136 118,168 80,168 C 42,168 16,136 16,94 C 16,60 42,36 80,36 Z"
               fill="url(#bagBodyGrad)"
-              stroke={isComplete ? '#ffd060' : 'rgba(240,165,0,0.32)'}
+              style={{stroke: isComplete ? '#ffd060' : 'var(--bag-stroke)'}}
               strokeWidth="2"
               className={isComplete ? 'goal-complete-stroke' : ''}
             />
@@ -899,20 +965,18 @@ function MoneyBagGoal({ progress, earned, goal, netProfit, vatCollected }) {
 
             {/* € sign (above the liquid line or fixed upper area) */}
             <text x="80" y="64" textAnchor="middle"
-              fill="rgba(240,165,0,0.3)" fontSize="24" fontWeight="800"
+              style={{fill:'var(--gold)',opacity:0.35}} fontSize="24" fontWeight="800"
               fontFamily="-apple-system,sans-serif">€</text>
 
             {/* Percentage */}
             <text x="80" y="104" textAnchor="middle"
-              fill={textOnGold ? 'rgba(20,8,0,0.9)' : '#f5f5f7'}
               fontSize="26" fontWeight="800" fontFamily="-apple-system,sans-serif"
-              style={{transition:'fill .6s'}}>
+              style={{fill: textOnGold ? 'rgba(20,8,0,0.9)' : 'var(--text)', transition:'fill .6s'}}>
               {(pct * 100).toFixed(1)}%
             </text>
             <text x="80" y="120" textAnchor="middle"
-              fill={textOnGold ? 'rgba(0,0,0,0.5)' : 'rgba(245,245,247,0.45)'}
               fontSize="10" fontFamily="-apple-system,sans-serif"
-              style={{transition:'fill .6s'}}>
+              style={{fill: textOnGold ? 'rgba(0,0,0,0.5)' : 'var(--text2)', transition:'fill .6s'}}>
               van doel
             </text>
           </svg>
@@ -2127,6 +2191,7 @@ function App() {
 
   // ── UI state ──────────────────────────────────────────────────────
   const [view,         setView]         = useState('dashboard');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAdd,      setShowAdd]      = useState(false);
   const [editEntry,    setEditEntry]    = useState(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -2297,18 +2362,67 @@ function App() {
           >
             {settings.theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <span className="nav-user">👤 {currentUser.username}</span>
-          <button className="btn btn-ghost btn-sm" title="Download backup" onClick={handleExport}>💾 Backup</button>
-          <label className="nav-file-btn" title="Herstel vanuit backup">
+          <span className="nav-user nav-desktop-only">👤 {currentUser.username}</span>
+          <button className="btn btn-ghost btn-sm nav-desktop-only" title="Download backup" onClick={handleExport}>💾 Backup</button>
+          <label className="nav-file-btn nav-desktop-only" title="Herstel vanuit backup">
             📁 Herstel
             <input type="file" accept=".json" style={{display:'none'}}
               onChange={e => { if (e.target.files[0]) handleImport(e.target.files[0]); e.target.value = ''; }}/>
           </label>
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowSettings(true)}>⚙ Instellingen</button>
-          <button className="btn btn-primary btn-sm" onClick={openAdd}>+ Log Shift</button>
-          <button className="btn btn-danger btn-sm" onClick={handleLogout} title="Uitloggen">Logout</button>
+          <button className="btn btn-ghost btn-sm nav-desktop-only" onClick={() => setShowSettings(true)}>⚙ Instellingen</button>
+          <button className="btn btn-primary btn-sm nav-desktop-only" onClick={openAdd}>+ Log Shift</button>
+          <button className="btn btn-danger btn-sm nav-desktop-only" onClick={handleLogout} title="Uitloggen">Logout</button>
+          {/* Mobile hamburger */}
+          <button
+            className={`hamburger-btn${showMobileMenu ? ' open' : ''}`}
+            onClick={() => setShowMobileMenu(m => !m)}
+            aria-label="Menu"
+          >
+            <span/><span/><span/>
+          </button>
         </div>
       </nav>
+
+      {/* ── Mobile menu ─────────────────────────────────────────── */}
+      {showMobileMenu && (
+        <div className="mobile-menu" onClick={e => { if (e.target === e.currentTarget) setShowMobileMenu(false); }}>
+          <div className="mobile-menu-inner">
+            <div className="mobile-menu-tabs">
+              {[['dashboard','🏠','Dashboard'],['history','📋','History'],['weekly','📅','Weekly'],['stats','📊','Stats']].map(([v,icon,l]) => (
+                <button key={v}
+                  className={`mobile-menu-tab${view===v?' active':''}`}
+                  onClick={() => { setView(v); setShowMobileMenu(false); }}>
+                  <span>{icon}</span>{l}
+                </button>
+              ))}
+            </div>
+            <div className="mobile-menu-divider"/>
+            <div className="mobile-menu-actions">
+              <button className="mobile-menu-action" onClick={() => { openAdd(); setShowMobileMenu(false); }}>
+                <span>⚓</span> Log Shift
+              </button>
+              <button className="mobile-menu-action" onClick={() => { setShowSettings(true); setShowMobileMenu(false); }}>
+                <span>⚙</span> Instellingen
+              </button>
+              <button className="mobile-menu-action" onClick={() => { handleExport(); setShowMobileMenu(false); }}>
+                <span>💾</span> Backup downloaden
+              </button>
+              <label className="mobile-menu-action" style={{cursor:'pointer'}}>
+                <span>📁</span> Herstel vanuit backup
+                <input type="file" accept=".json" style={{display:'none'}}
+                  onChange={e => { if (e.target.files[0]) { handleImport(e.target.files[0]); e.target.value = ''; setShowMobileMenu(false); }}}/>
+              </label>
+            </div>
+            <div className="mobile-menu-divider"/>
+            <div style={{padding:'4px 0 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <span style={{fontSize:'13px',color:'var(--text2)',paddingLeft:'16px'}}>👤 {currentUser.username}</span>
+              <button className="mobile-menu-action danger" style={{width:'auto',paddingRight:'16px'}} onClick={() => { handleLogout(); setShowMobileMenu(false); }}>
+                Uitloggen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Migration banner ────────────────────────────────────── */}
       {localData && (
