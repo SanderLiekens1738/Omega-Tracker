@@ -48,6 +48,32 @@ async function initPG() {
       user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       data    JSONB NOT NULL DEFAULT '[]'
     );
+    CREATE TABLE IF NOT EXISTS posts (
+      id         SERIAL PRIMARY KEY,
+      user_id    INT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      username   TEXT NOT NULL,
+      content    TEXT NOT NULL,
+      image      TEXT,
+      likes      JSONB NOT NULL DEFAULT '[]',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS group_messages (
+      id         SERIAL PRIMARY KEY,
+      user_id    INT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      username   TEXT NOT NULL,
+      content    TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS direct_messages (
+      id             SERIAL PRIMARY KEY,
+      from_user_id   INT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      from_username  TEXT NOT NULL,
+      to_user_id     INT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      to_username    TEXT NOT NULL,
+      content        TEXT NOT NULL,
+      read           BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at     TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
   console.log('PostgreSQL tables ready.');
 }
@@ -55,7 +81,7 @@ async function initPG() {
 // ── JSON file storage (local dev) ────────────────────────────────────
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!USE_PG) {
-  ['users','entries','settings','drafts'].forEach(s => {
+  ['users','entries','settings','drafts','social'].forEach(s => {
     const p = path.join(DATA_DIR, s);
     if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
   });
@@ -155,6 +181,165 @@ async function dbSaveDrafts(userId, drafts) {
   }
 }
 
+async function dbGetUserById(userId) {
+  if (USE_PG) {
+    const { rows } = await pool.query('SELECT id, username FROM users WHERE id = $1', [userId]);
+    return rows[0] || null;
+  }
+  const idx = readJSON('users/index.json', { _next: 1 });
+  const u = Object.values(idx).find(v => v && v.id == userId);
+  return u ? { id: u.id, username: u.username } : null;
+}
+
+async function dbGetAllUsers() {
+  if (USE_PG) {
+    const { rows } = await pool.query('SELECT id, username FROM users ORDER BY username ASC');
+    return rows;
+  }
+  const idx = readJSON('users/index.json', { _next: 1 });
+  return Object.values(idx).filter(v => v && v.id)
+    .map(v => ({ id: v.id, username: v.username }))
+    .sort((a, b) => a.username.localeCompare(b.username));
+}
+
+// ── Feed ────────────────────────────────────────────────────────────
+async function dbGetFeed(offset = 0, limit = 20) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      'SELECT id, user_id, username, content, image, likes, created_at FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]);
+    return rows;
+  }
+  const all = readJSON('social/posts.json', []);
+  return all.slice().reverse().slice(offset, offset + limit);
+}
+
+async function dbCreatePost(userId, username, content, image) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      "INSERT INTO posts (user_id, username, content, image, likes) VALUES ($1,$2,$3,$4,'[]') RETURNING *",
+      [userId, username, content, image || null]);
+    return rows[0];
+  }
+  const posts = readJSON('social/posts.json', []);
+  const post = { id: Date.now(), user_id: userId, username, content, image: image || null, likes: [], created_at: new Date().toISOString() };
+  posts.push(post);
+  writeJSON('social/posts.json', posts);
+  return post;
+}
+
+async function dbDeletePost(postId, userId) {
+  if (USE_PG) {
+    await pool.query('DELETE FROM posts WHERE id = $1 AND user_id = $2', [postId, userId]);
+  } else {
+    const posts = readJSON('social/posts.json', []);
+    writeJSON('social/posts.json', posts.filter(p => !(p.id == postId && p.user_id == userId)));
+  }
+}
+
+async function dbToggleLike(postId, userId) {
+  if (USE_PG) {
+    const { rows } = await pool.query('SELECT likes FROM posts WHERE id = $1', [postId]);
+    if (!rows[0]) return null;
+    let likes = rows[0].likes || [];
+    likes = likes.includes(userId) ? likes.filter(id => id !== userId) : [...likes, userId];
+    await pool.query('UPDATE posts SET likes = $1 WHERE id = $2', [JSON.stringify(likes), postId]);
+    return likes;
+  }
+  const posts = readJSON('social/posts.json', []);
+  const post = posts.find(p => p.id == postId);
+  if (!post) return null;
+  if (post.likes.includes(userId)) post.likes = post.likes.filter(id => id !== userId);
+  else post.likes.push(userId);
+  writeJSON('social/posts.json', posts);
+  return post.likes;
+}
+
+// ── Group chat ──────────────────────────────────────────────────────
+async function dbGetGroupMessages(after = 0) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      'SELECT id, user_id, username, content, created_at FROM group_messages WHERE id > $1 ORDER BY id ASC LIMIT 200',
+      [after]);
+    return rows;
+  }
+  return readJSON('social/group.json', []).filter(m => m.id > after);
+}
+
+async function dbPostGroupMessage(userId, username, content) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      'INSERT INTO group_messages (user_id, username, content) VALUES ($1,$2,$3) RETURNING *',
+      [userId, username, content]);
+    return rows[0];
+  }
+  const msgs = readJSON('social/group.json', []);
+  const msg = { id: Date.now(), user_id: userId, username, content, created_at: new Date().toISOString() };
+  msgs.push(msg);
+  writeJSON('social/group.json', msgs);
+  return msg;
+}
+
+// ── Direct messages ─────────────────────────────────────────────────
+async function dbGetDirectMessages(userId, otherId, after = 0) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      `SELECT id,from_user_id,from_username,to_user_id,to_username,content,read,created_at
+       FROM direct_messages
+       WHERE ((from_user_id=$1 AND to_user_id=$2) OR (from_user_id=$2 AND to_user_id=$1)) AND id>$3
+       ORDER BY id ASC LIMIT 200`,
+      [userId, otherId, after]);
+    return rows;
+  }
+  return readJSON('social/dm.json', []).filter(m =>
+    ((m.from_user_id == userId && m.to_user_id == otherId) ||
+     (m.from_user_id == otherId && m.to_user_id == userId)) && m.id > after);
+}
+
+async function dbPostDirectMessage(fromId, fromUsername, toId, toUsername, content) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      'INSERT INTO direct_messages (from_user_id,from_username,to_user_id,to_username,content) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [fromId, fromUsername, toId, toUsername, content]);
+    return rows[0];
+  }
+  const msgs = readJSON('social/dm.json', []);
+  const msg = { id: Date.now(), from_user_id: fromId, from_username: fromUsername, to_user_id: toId, to_username: toUsername, content, read: false, created_at: new Date().toISOString() };
+  msgs.push(msg);
+  writeJSON('social/dm.json', msgs);
+  return msg;
+}
+
+async function dbMarkDMsRead(toUserId, fromUserId) {
+  if (USE_PG) {
+    await pool.query(
+      'UPDATE direct_messages SET read=TRUE WHERE to_user_id=$1 AND from_user_id=$2 AND read=FALSE',
+      [toUserId, fromUserId]);
+  } else {
+    const msgs = readJSON('social/dm.json', []);
+    msgs.forEach(m => { if (m.to_user_id == toUserId && m.from_user_id == fromUserId) m.read = true; });
+    writeJSON('social/dm.json', msgs);
+  }
+}
+
+async function dbGetUnreadCounts(userId) {
+  if (USE_PG) {
+    const { rows } = await pool.query(
+      `SELECT from_user_id, from_username, COUNT(*) AS count
+       FROM direct_messages WHERE to_user_id=$1 AND read=FALSE
+       GROUP BY from_user_id, from_username`,
+      [userId]);
+    return rows.map(r => ({ from_user_id: r.from_user_id, from_username: r.from_username, count: parseInt(r.count) }));
+  }
+  const msgs = readJSON('social/dm.json', []);
+  const map = {};
+  msgs.filter(m => m.to_user_id == userId && !m.read).forEach(m => {
+    if (!map[m.from_user_id]) map[m.from_user_id] = { from_user_id: m.from_user_id, from_username: m.from_username, count: 0 };
+    map[m.from_user_id].count++;
+  });
+  return Object.values(map);
+}
+
 // ── Express ──────────────────────────────────────────────────────────
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -246,6 +431,71 @@ app.post('/api/import', requireAuth, async (req, res) => {
 
 app.get('/api/drafts', requireAuth, async (req, res) => {
   res.json(await dbGetDrafts(req.user.id));
+});
+
+// ── Users list ───────────────────────────────────────────────────────
+app.get('/api/users', requireAuth, async (req, res) => {
+  const all = await dbGetAllUsers();
+  res.json(all.filter(u => u.id !== req.user.id));
+});
+
+// ── Feed ─────────────────────────────────────────────────────────────
+app.get('/api/feed', requireAuth, async (req, res) => {
+  const offset = Math.max(0, parseInt(req.query.offset) || 0);
+  const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  res.json(await dbGetFeed(offset, limit));
+});
+
+app.post('/api/feed', requireAuth, async (req, res) => {
+  const { content = '', image } = req.body || {};
+  if (!content.trim()) return res.status(400).json({ error: 'Inhoud is verplicht' });
+  if (image && image.length > 2 * 1024 * 1024) return res.status(413).json({ error: 'Afbeelding te groot (max 1.5 MB)' });
+  const post = await dbCreatePost(req.user.id, req.user.username, content.trim(), image || null);
+  res.json(post);
+});
+
+app.delete('/api/feed/:id', requireAuth, async (req, res) => {
+  await dbDeletePost(req.params.id, req.user.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/feed/:id/like', requireAuth, async (req, res) => {
+  const likes = await dbToggleLike(req.params.id, req.user.id);
+  if (likes === null) return res.status(404).json({ error: 'Post niet gevonden' });
+  res.json({ likes });
+});
+
+// ── Group chat ───────────────────────────────────────────────────────
+app.get('/api/chat/group', requireAuth, async (req, res) => {
+  const after = Math.max(0, parseInt(req.query.after) || 0);
+  res.json(await dbGetGroupMessages(after));
+});
+
+app.post('/api/chat/group', requireAuth, async (req, res) => {
+  const { content = '' } = req.body || {};
+  if (!content.trim()) return res.status(400).json({ error: 'Bericht is verplicht' });
+  res.json(await dbPostGroupMessage(req.user.id, req.user.username, content.trim()));
+});
+
+// ── Direct messages ──────────────────────────────────────────────────
+app.get('/api/chat/unread', requireAuth, async (req, res) => {
+  res.json(await dbGetUnreadCounts(req.user.id));
+});
+
+app.get('/api/chat/dm/:userId', requireAuth, async (req, res) => {
+  const other = parseInt(req.params.userId);
+  const after = Math.max(0, parseInt(req.query.after) || 0);
+  const msgs  = await dbGetDirectMessages(req.user.id, other, after);
+  await dbMarkDMsRead(req.user.id, other);
+  res.json(msgs);
+});
+
+app.post('/api/chat/dm/:userId', requireAuth, async (req, res) => {
+  const { content = '' } = req.body || {};
+  if (!content.trim()) return res.status(400).json({ error: 'Bericht is verplicht' });
+  const toUser = await dbGetUserById(parseInt(req.params.userId));
+  if (!toUser) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+  res.json(await dbPostDirectMessage(req.user.id, req.user.username, toUser.id, toUser.username, content.trim()));
 });
 
 app.post('/api/drafts', requireAuth, async (req, res) => {

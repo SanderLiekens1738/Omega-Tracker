@@ -752,6 +752,64 @@ html[data-theme="light"] .install-banner{box-shadow:0 8px 32px rgba(0,0,0,0.14)}
   color:var(--text3);font-size:18px;line-height:1;
   padding:2px 0 2px 4px;flex-shrink:0;
 }
+
+/* ── Social page ─────────────────────────────────────────────────── */
+.social-page{display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden}
+.social-tabs{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}
+.social-tab{padding:12px 20px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;position:relative;white-space:nowrap}
+.social-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.social-tab:hover:not(.active){color:var(--text)}
+.social-inner{flex:1;overflow-y:auto;overflow-x:hidden}
+
+/* Feed */
+.feed-wrap{padding:16px;max-width:640px;margin:0 auto}
+.feed-compose{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:18px}
+.feed-compose-textarea{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;color:var(--text);font-size:15px;resize:none;font-family:inherit;box-sizing:border-box;margin-bottom:10px;line-height:1.5}
+.feed-compose-textarea:focus{outline:none;border-color:var(--gold)}
+.feed-post{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:14px;animation:slideInCard .2s ease}
+.feed-post-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.feed-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));color:#000;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feed-post-meta{flex:1;min-width:0}
+.feed-post-name{font-weight:700;font-size:14px;color:var(--text)}
+.feed-post-time{font-size:11px;color:var(--text2);margin-top:1px}
+.feed-del-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px;opacity:.5;transition:opacity .15s,color .15s;flex-shrink:0}
+.feed-del-btn:hover{opacity:1;color:#ef4444}
+.feed-post-content{font-size:15px;color:var(--text);line-height:1.55;margin-bottom:10px;white-space:pre-wrap;word-break:break-word}
+.feed-post-img{width:100%;border-radius:12px;margin-bottom:10px;max-height:420px;object-fit:cover;cursor:pointer}
+.feed-post-actions{display:flex;gap:12px;padding-top:10px;border-top:1px solid var(--border2)}
+.feed-like-btn{background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text2);font-weight:600;transition:background .15s,color .15s}
+.feed-like-btn:hover{background:rgba(239,68,68,.1);color:#ef4444}
+.feed-like-btn.liked{color:#ef4444}
+.feed-empty{text-align:center;padding:60px 20px;color:var(--text2)}
+.feed-empty-icon{font-size:44px;margin-bottom:10px}
+
+/* Chat */
+.chat-outer{display:flex;flex-direction:column;height:100%;padding:0}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.chat-msg{display:flex;gap:8px;align-items:flex-end;max-width:80%}
+.chat-msg.mine{align-self:flex-end;flex-direction:row-reverse}
+.chat-msg-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));color:#000;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-bubble{background:var(--card);border:1px solid var(--border2);border-radius:18px 18px 18px 4px;padding:9px 14px}
+.chat-msg.mine .chat-bubble{background:var(--gold);color:#000;border-color:transparent;border-radius:18px 18px 4px 18px}
+.chat-name{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px}
+.chat-text{font-size:14px;line-height:1.4;word-break:break-word}
+.chat-msg.mine .chat-text{color:#000}
+.chat-time{font-size:10px;color:var(--text2);margin-top:4px;text-align:right}
+.chat-msg.mine .chat-time{color:rgba(0,0,0,.5)}
+.chat-input-bar{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
+.chat-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:22px;padding:10px 16px;color:var(--text);font-size:14px;font-family:inherit}
+.chat-input:focus{outline:none;border-color:var(--gold)}
+.chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--gold);color:#000;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+.chat-send-btn:disabled{opacity:.4;cursor:default}
+
+/* DM */
+.dm-list{padding:12px 16px}
+.dm-user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border2);border-radius:14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s}
+.dm-user-row:hover{border-color:var(--gold)}
+.dm-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#000;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dm-user-name{flex:1;font-weight:600;font-size:15px;color:var(--text)}
+.dm-back-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}
+.dm-back-name{font-weight:700;font-size:15px;color:var(--text)}
 </style>
 </head>
 <body>
@@ -2689,6 +2747,360 @@ function ActiveTimerChip({ drafts, onStop }) {
   );
 }
 
+// ── Image compression helper ─────────────────────────────────────────
+function compressImage(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1024;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = url;
+  });
+}
+
+// ── Time formatter (social) ──────────────────────────────────────────
+function fmtAgo(ts) {
+  const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (diff < 55)     return 'Zojuist';
+  if (diff < 3600)   return `${Math.floor(diff/60)}m geleden`;
+  if (diff < 86400)  return `${Math.floor(diff/3600)}u geleden`;
+  const d = new Date(ts);
+  return d.toLocaleDateString('nl-BE', { day:'numeric', month:'short' });
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('nl-BE', { hour:'2-digit', minute:'2-digit' });
+}
+
+// ── FeedPost ─────────────────────────────────────────────────────────
+function FeedPost({ post, myId, onLike, onDelete }) {
+  const liked = Array.isArray(post.likes) && post.likes.includes(myId);
+  const n     = Array.isArray(post.likes) ? post.likes.length : 0;
+  return (
+    <div className="feed-post">
+      <div className="feed-post-header">
+        <div className="feed-avatar">{post.username[0].toUpperCase()}</div>
+        <div className="feed-post-meta">
+          <div className="feed-post-name">{post.username}</div>
+          <div className="feed-post-time">{fmtAgo(post.created_at)}</div>
+        </div>
+        {post.user_id == myId && (
+          <button className="feed-del-btn" title="Verwijderen"
+            onClick={() => { if (window.confirm('Post verwijderen?')) onDelete(post.id); }}>✕</button>
+        )}
+      </div>
+      <div className="feed-post-content">{post.content}</div>
+      {post.image && <img src={post.image} className="feed-post-img" alt="" onClick={e => window.open(post.image)}/>}
+      <div className="feed-post-actions">
+        <button className={`feed-like-btn${liked?' liked':''}`} onClick={() => onLike(post.id)}>
+          {liked ? '❤️' : '🤍'} {n > 0 ? n : 'Vind ik leuk'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── ChatMessage ──────────────────────────────────────────────────────
+function ChatMessage({ msg, myId }) {
+  const mine = (msg.user_id != null ? msg.user_id : msg.from_user_id) == myId;
+  const name = msg.username || msg.from_username || '?';
+  return (
+    <div className={`chat-msg${mine?' mine':''}`}>
+      {!mine && <div className="chat-msg-av">{name[0].toUpperCase()}</div>}
+      <div className="chat-bubble">
+        {!mine && <div className="chat-name">{name}</div>}
+        <div className="chat-text">{msg.content}</div>
+        <div className="chat-time">{fmtTime(msg.created_at)}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── SocialPage ───────────────────────────────────────────────────────
+function SocialPage({ currentUser, onUnreadChange }) {
+  const [sub, setSub]               = useState('feed');
+  // Feed
+  const [posts, setPosts]           = useState([]);
+  const [feedOffset, setFeedOffset] = useState(0);
+  const [hasMore, setHasMore]       = useState(true);
+  const [compose, setCompose]       = useState(false);
+  const [postText, setPostText]     = useState('');
+  const [postImg, setPostImg]       = useState(null);
+  const [posting, setPosting]       = useState(false);
+  // Group chat
+  const [groupMsgs, setGroupMsgs]   = useState([]);
+  const lastGroupId                 = useRef(0);
+  const [groupInput, setGroupInput] = useState('');
+  const groupEnd                    = useRef(null);
+  // DMs
+  const [users, setUsers]           = useState([]);
+  const [activeDM, setActiveDM]     = useState(null);
+  const [dmMsgs, setDmMsgs]         = useState([]);
+  const lastDMId                    = useRef(0);
+  const [dmInput, setDmInput]       = useState('');
+  const dmEnd                       = useRef(null);
+  const [unread, setUnread]         = useState({});
+
+  // ── Unread polling ──────────────────────────────────────────────
+  useEffect(() => {
+    function load() {
+      API.call('GET', '/api/chat/unread').then(rows => {
+        if (!Array.isArray(rows)) return;
+        const map = {};
+        rows.forEach(r => { map[r.from_user_id] = r.count; });
+        setUnread(map);
+        if (onUnreadChange) onUnreadChange(rows.reduce((s, r) => s + r.count, 0));
+      }).catch(() => {});
+    }
+    load();
+    const t = setInterval(load, 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  // ── Load users ──────────────────────────────────────────────────
+  useEffect(() => {
+    API.call('GET', '/api/users').then(u => { if (Array.isArray(u)) setUsers(u); }).catch(() => {});
+  }, []);
+
+  // ── Feed initial load ───────────────────────────────────────────
+  useEffect(() => {
+    if (sub !== 'feed') return;
+    loadFeed(true);
+  }, [sub]);
+
+  // ── Group chat load + poll ──────────────────────────────────────
+  useEffect(() => {
+    if (sub !== 'group') return;
+    API.call('GET', '/api/chat/group?after=0').then(msgs => {
+      if (!Array.isArray(msgs)) return;
+      setGroupMsgs(msgs);
+      if (msgs.length) lastGroupId.current = msgs[msgs.length - 1].id;
+      setTimeout(() => groupEnd.current && groupEnd.current.scrollIntoView({ behavior: 'auto' }), 80);
+    }).catch(() => {});
+    const t = setInterval(() => {
+      API.call('GET', `/api/chat/group?after=${lastGroupId.current}`).then(msgs => {
+        if (!Array.isArray(msgs) || !msgs.length) return;
+        setGroupMsgs(prev => [...prev, ...msgs]);
+        lastGroupId.current = msgs[msgs.length - 1].id;
+        setTimeout(() => groupEnd.current && groupEnd.current.scrollIntoView({ behavior: 'smooth' }), 50);
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(t);
+  }, [sub]);
+
+  // ── DM load + poll ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!activeDM) return;
+    lastDMId.current = 0;
+    API.call('GET', `/api/chat/dm/${activeDM.id}?after=0`).then(msgs => {
+      if (!Array.isArray(msgs)) return;
+      setDmMsgs(msgs);
+      if (msgs.length) lastDMId.current = msgs[msgs.length - 1].id;
+      setTimeout(() => dmEnd.current && dmEnd.current.scrollIntoView({ behavior: 'auto' }), 80);
+      setUnread(prev => { const n = {...prev}; delete n[activeDM.id]; return n; });
+      if (onUnreadChange) {
+        setUnread(prev => {
+          const total = Object.values({...prev, [activeDM.id]: 0}).reduce((s,v)=>s+v, 0);
+          onUnreadChange(total);
+          return prev;
+        });
+      }
+    }).catch(() => {});
+    const t = setInterval(() => {
+      API.call('GET', `/api/chat/dm/${activeDM.id}?after=${lastDMId.current}`).then(msgs => {
+        if (!Array.isArray(msgs) || !msgs.length) return;
+        setDmMsgs(prev => [...prev, ...msgs]);
+        lastDMId.current = msgs[msgs.length - 1].id;
+        setTimeout(() => dmEnd.current && dmEnd.current.scrollIntoView({ behavior: 'smooth' }), 50);
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(t);
+  }, [activeDM && activeDM.id]);
+
+  function loadFeed(reset) {
+    const off = reset ? 0 : feedOffset;
+    API.call('GET', `/api/feed?offset=${off}&limit=20`).then(data => {
+      if (!Array.isArray(data)) return;
+      setPosts(prev => reset ? data : [...prev, ...data]);
+      setFeedOffset(off + data.length);
+      setHasMore(data.length === 20);
+    }).catch(() => {});
+  }
+
+  async function submitPost() {
+    if (!postText.trim() || posting) return;
+    setPosting(true);
+    try {
+      const post = await API.call('POST', '/api/feed', { content: postText.trim(), image: postImg });
+      if (post && post.id) {
+        setPosts(prev => [post, ...prev]);
+        setPostText(''); setPostImg(null); setCompose(false);
+      }
+    } finally { setPosting(false); }
+  }
+
+  async function handleLike(id) {
+    const res = await API.call('POST', `/api/feed/${id}/like`);
+    if (res && res.likes) setPosts(prev => prev.map(p => p.id == id ? {...p, likes: res.likes} : p));
+  }
+
+  async function handleDelete(id) {
+    await API.call('DELETE', `/api/feed/${id}`);
+    setPosts(prev => prev.filter(p => p.id != id));
+  }
+
+  async function handleImagePick(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const compressed = await compressImage(file);
+    setPostImg(compressed);
+    e.target.value = '';
+  }
+
+  async function sendGroup() {
+    if (!groupInput.trim()) return;
+    const msg = await API.call('POST', '/api/chat/group', { content: groupInput.trim() });
+    if (msg && msg.id) {
+      setGroupMsgs(prev => [...prev, msg]);
+      lastGroupId.current = msg.id;
+      setGroupInput('');
+      setTimeout(() => groupEnd.current && groupEnd.current.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
+  }
+
+  async function sendDM() {
+    if (!dmInput.trim() || !activeDM) return;
+    const msg = await API.call('POST', `/api/chat/dm/${activeDM.id}`, { content: dmInput.trim() });
+    if (msg && msg.id) {
+      setDmMsgs(prev => [...prev, msg]);
+      lastDMId.current = msg.id;
+      setDmInput('');
+      setTimeout(() => dmEnd.current && dmEnd.current.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
+  }
+
+  const totalUnread = Object.values(unread).reduce((s, v) => s + v, 0);
+
+  return (
+    <div className="social-page">
+      {/* Sub-tab bar */}
+      <div className="social-tabs">
+        {[['feed','📰 Feed'],['group','💬 Groep'],['dm','✉️ Berichten']].map(([t, label]) => (
+          <button key={t} className={`social-tab${sub===t?' active':''}`} onClick={() => { setSub(t); if(t!=='dm') setActiveDM(null); }}>
+            {label}
+            {t === 'dm' && totalUnread > 0 && <span className="tab-badge" style={{position:'relative',top:'-1px',marginLeft:'6px'}}>{totalUnread}</span>}
+          </button>
+        ))}
+      </div>
+
+      <div className="social-inner">
+        {/* ── Feed ── */}
+        {sub === 'feed' && (
+          <div className="feed-wrap">
+            <button className="btn btn-primary" style={{marginBottom:'14px',width:'100%'}} onClick={() => setCompose(s => !s)}>
+              {compose ? '✕ Annuleren' : '✏️ Nieuw bericht plaatsen'}
+            </button>
+            {compose && (
+              <div className="feed-compose">
+                <textarea className="feed-compose-textarea" rows={3}
+                  placeholder="Wat wil je delen met je collega's?"
+                  value={postText} onChange={e => setPostText(e.target.value)}/>
+                {postImg && (
+                  <div style={{position:'relative',marginBottom:'10px'}}>
+                    <img src={postImg} style={{maxWidth:'100%',maxHeight:'180px',borderRadius:'10px',display:'block'}}/>
+                    <button onClick={() => setPostImg(null)} style={{position:'absolute',top:'6px',right:'6px',background:'rgba(0,0,0,.65)',border:'none',color:'#fff',borderRadius:'50%',width:'26px',height:'26px',cursor:'pointer',fontSize:'13px',lineHeight:'1'}}>✕</button>
+                  </div>
+                )}
+                <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                  <label className="btn btn-ghost btn-sm" style={{cursor:'pointer'}}>
+                    📷 Foto
+                    <input type="file" accept="image/*" style={{display:'none'}} onChange={handleImagePick}/>
+                  </label>
+                  <button className="btn btn-primary btn-sm" onClick={submitPost} disabled={!postText.trim() || posting}>
+                    {posting ? '…' : 'Plaatsen'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {posts.map(p => <FeedPost key={p.id} post={p} myId={currentUser.id} onLike={handleLike} onDelete={handleDelete}/>)}
+            {hasMore && posts.length > 0 && (
+              <button className="btn btn-ghost" style={{width:'100%',marginTop:'4px'}} onClick={() => loadFeed(false)}>Meer laden</button>
+            )}
+            {posts.length === 0 && (
+              <div className="feed-empty"><div className="feed-empty-icon">📰</div>Nog geen berichten. Wees de eerste!</div>
+            )}
+          </div>
+        )}
+
+        {/* ── Group chat ── */}
+        {sub === 'group' && (
+          <div className="chat-outer">
+            <div className="chat-messages">
+              {groupMsgs.length === 0 && (
+                <div style={{textAlign:'center',padding:'40px',color:'var(--text2)'}}>Nog geen berichten. Zeg hallo! 👋</div>
+              )}
+              {groupMsgs.map(m => <ChatMessage key={m.id} msg={m} myId={currentUser.id}/>)}
+              <div ref={groupEnd}/>
+            </div>
+            <div className="chat-input-bar">
+              <input className="chat-input" placeholder="Stuur een bericht…"
+                value={groupInput} onChange={e => setGroupInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendGroup(); }}}/>
+              <button className="chat-send-btn" onClick={sendGroup} disabled={!groupInput.trim()}>➤</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Direct messages ── */}
+        {sub === 'dm' && !activeDM && (
+          <div className="dm-list">
+            <div style={{fontSize:'13px',color:'var(--text2)',marginBottom:'12px'}}>Kies een collega om te berichten:</div>
+            {users.length === 0 && <div style={{color:'var(--text2)',textAlign:'center',padding:'32px'}}>Nog geen andere gebruikers.</div>}
+            {users.map(u => (
+              <div key={u.id} className="dm-user-row" onClick={() => { setActiveDM(u); setDmMsgs([]); }}>
+                <div className="dm-av">{u.username[0].toUpperCase()}</div>
+                <div className="dm-user-name">{u.username}</div>
+                {unread[u.id] > 0 && <span className="tab-badge">{unread[u.id]}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+        {sub === 'dm' && activeDM && (
+          <div className="chat-outer">
+            <div className="dm-back-bar">
+              <button className="btn btn-ghost btn-sm" onClick={() => setActiveDM(null)}>← Terug</button>
+              <div className="dm-back-name">{activeDM.username}</div>
+            </div>
+            <div className="chat-messages">
+              {dmMsgs.length === 0 && (
+                <div style={{textAlign:'center',padding:'40px',color:'var(--text2)'}}>Stuur het eerste bericht! 💬</div>
+              )}
+              {dmMsgs.map(m => <ChatMessage key={m.id} msg={m} myId={currentUser.id}/>)}
+              <div ref={dmEnd}/>
+            </div>
+            <div className="chat-input-bar">
+              <input className="chat-input" placeholder={`Bericht aan ${activeDM.username}…`}
+                value={dmInput} onChange={e => setDmInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDM(); }}}/>
+              <button className="chat-send-btn" onClick={sendDM} disabled={!dmInput.trim()}>➤</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── App ──────────────────────────────────────────────────────────────
 function App() {
   // ── Auth state ────────────────────────────────────────────────────
@@ -2715,6 +3127,7 @@ function App() {
   const [editEntry,    setEditEntry]    = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [drafts,       setDrafts]       = useState([]);
+  const [dmUnread,     setDmUnread]     = useState(0);
   const [toast,        setToast]        = useState(null);
   const toastTimer = useRef(null);
 
@@ -2990,10 +3403,11 @@ function App() {
       <nav className="nav">
         <div className="nav-logo">Ω Omega</div>
         <div className="nav-tabs">
-          {[['dashboard','Dashboard'],['history','History'],['weekly','Weekly'],['stats','Stats'],['drafts','Concepts']].map(([v,l]) => (
+          {[['dashboard','Dashboard'],['history','History'],['weekly','Weekly'],['stats','Stats'],['drafts','Concepts'],['social','Sociaal']].map(([v,l]) => (
             <div key={v} className="nav-tab-rel">
               <button className={`nav-tab${view===v?' active':''}`} onClick={() => setView(v)}>{l}</button>
               {v === 'drafts' && drafts.length > 0 && <span className="tab-badge">{drafts.length}</span>}
+              {v === 'social' && dmUnread > 0 && <span className="tab-badge">{dmUnread}</span>}
             </div>
           ))}
         </div>
@@ -3032,11 +3446,13 @@ function App() {
         <div className="mobile-menu" onClick={e => { if (e.target === e.currentTarget) setShowMobileMenu(false); }}>
           <div className="mobile-menu-inner">
             <div className="mobile-menu-tabs">
-              {[['dashboard','🏠','Dashboard'],['history','📋','History'],['weekly','📅','Weekly'],['stats','📊','Stats'],['drafts','📝','Concepts']].map(([v,icon,l]) => (
+              {[['dashboard','🏠','Dashboard'],['history','📋','History'],['weekly','📅','Weekly'],['stats','📊','Stats'],['drafts','📝','Concepts'],['social','💬','Sociaal']].map(([v,icon,l]) => (
                 <button key={v}
                   className={`mobile-menu-tab${view===v?' active':''}`}
                   onClick={() => { setView(v); setShowMobileMenu(false); }}>
-                  <span>{icon}</span>{l}{v==='drafts'&&drafts.length>0?` (${drafts.length})`:''}
+                  <span>{icon}</span>{l}
+                  {v==='drafts'&&drafts.length>0?` (${drafts.length})`:''}
+                  {v==='social'&&dmUnread>0?` (${dmUnread})`:''}
                 </button>
               ))}
             </div>
@@ -3119,6 +3535,7 @@ function App() {
           onEdit={d => { setEditEntry({ ...d, _isDraftEdit: true }); setShowAdd(true); }}
         />
       )}
+      {view === 'social' && <SocialPage currentUser={currentUser} onUnreadChange={setDmUnread}/>}
       <ActiveTimerChip drafts={drafts} onStop={handleStopTimer}/>
 
       {showAdd && (
