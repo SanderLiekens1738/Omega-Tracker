@@ -2721,14 +2721,37 @@ function App() {
   // ── Migration offer (localStorage → server) ──────────────────────
   const [localData, setLocalData] = useState(null); // { entries, settings } from old localStorage
 
-  // ── Load drafts from localStorage ────────────────────────────────
+  // ── Load drafts from server (+ localStorage fallback) ────────────
   useEffect(() => {
     if (!currentUser) return;
+    // Show cached drafts instantly while server loads
     try {
-      const saved = JSON.parse(localStorage.getItem(`omega_drafts_${currentUser.id}`) || '[]');
-      if (Array.isArray(saved)) setDrafts(saved);
+      const cached = JSON.parse(localStorage.getItem(`omega_drafts_${currentUser && currentUser.id}`) || '[]');
+      if (Array.isArray(cached)) setDrafts(cached);
     } catch {}
+    API.call('GET', '/api/drafts').then(d => {
+      if (Array.isArray(d)) {
+        setDrafts(d);
+        try { localStorage.setItem(`omega_drafts_${currentUser && currentUser.id}`, JSON.stringify(d)); } catch {}
+      }
+    }).catch(() => {});
   }, [currentUser && currentUser.id]);
+
+  // ── Poll server for draft updates when a timer is active ─────────
+  useEffect(() => {
+    if (!currentUser) return;
+    const hasActive = drafts.some(d => d.isActive);
+    if (!hasActive) return;
+    const id = setInterval(() => {
+      API.call('GET', '/api/drafts').then(d => {
+        if (Array.isArray(d)) {
+          setDrafts(d);
+          try { localStorage.setItem(draftsKey(), JSON.stringify(d)); } catch {}
+        }
+      }).catch(() => {});
+    }, 15000);
+    return () => clearInterval(id);
+  }, [currentUser && currentUser.id, drafts.some(d => d.isActive)]);
 
   // ── Apply theme whenever settings change ─────────────────────────
   useEffect(() => {
@@ -2747,8 +2770,13 @@ function App() {
       if (setts && typeof setts === 'object') setSettings({ ...DEF_SETTINGS, ...setts });
       setEntries(serverEntries);
 
-      // Check for old localStorage data to migrate
-      if (serverEntries.length === 0) {
+      // Check for old localStorage data to migrate (unscoped key from pre-account version)
+      if (serverEntries.length > 0) {
+        // User already has server data — clear any stale unscoped localStorage so
+        // a newly registered account on this device never sees another user's data.
+        localStorage.removeItem('omega_entries');
+        localStorage.removeItem('omega_settings');
+      } else if (!localStorage.getItem('omega_entries_claimed')) {
         try {
           const lsEntries  = JSON.parse(localStorage.getItem('omega_entries') || 'null');
           const lsSettings = JSON.parse(localStorage.getItem('omega_settings') || 'null');
@@ -2779,6 +2807,7 @@ function App() {
     localStorage.removeItem('omega_token');
     setCurrentUser(null);
     setEntries([]);
+    setDrafts([]);
     setSettings(DEF_SETTINGS);
     setDataReady(false);
   }
@@ -2831,6 +2860,7 @@ function App() {
   function persistDrafts(next) {
     setDrafts(next);
     try { localStorage.setItem(draftsKey(), JSON.stringify(next)); } catch {}
+    API.call('POST', '/api/drafts', { drafts: next }).catch(() => {});
   }
   function handleSaveDraft(draft) {
     let next = drafts.filter(d => d.id !== draft.id);
@@ -2904,9 +2934,9 @@ function App() {
       if (localData.settings) await API.call('PUT', '/api/settings', localData.settings);
       setEntries(localData.entries);
       if (localData.settings) setSettings({ ...DEF_SETTINGS, ...localData.settings });
-      // Clear old localStorage so we don't prompt again
       localStorage.removeItem('omega_entries');
       localStorage.removeItem('omega_settings');
+      localStorage.setItem('omega_entries_claimed', '1');
       setLocalData(null);
       showToast(`${localData.entries.length} shifts overgezet naar je account!`, '🚢');
     } catch { showToast('Migratie mislukt', '⚠'); }
@@ -2915,6 +2945,7 @@ function App() {
   function dismissMigration() {
     localStorage.removeItem('omega_entries');
     localStorage.removeItem('omega_settings');
+    localStorage.setItem('omega_entries_claimed', '1');
     setLocalData(null);
   }
 

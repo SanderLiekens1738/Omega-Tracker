@@ -44,6 +44,10 @@ async function initPG() {
       user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       data    JSONB NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS drafts (
+      user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      data    JSONB NOT NULL DEFAULT '[]'
+    );
   `);
   console.log('PostgreSQL tables ready.');
 }
@@ -51,7 +55,7 @@ async function initPG() {
 // ── JSON file storage (local dev) ────────────────────────────────────
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!USE_PG) {
-  ['users','entries','settings'].forEach(s => {
+  ['users','entries','settings','drafts'].forEach(s => {
     const p = path.join(DATA_DIR, s);
     if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
   });
@@ -130,6 +134,24 @@ async function dbSaveSettings(userId, s) {
       [userId, s]);
   } else {
     writeJSON(`settings/${userId}.json`, s);
+  }
+}
+
+async function dbGetDrafts(userId) {
+  if (USE_PG) {
+    const { rows } = await pool.query('SELECT data FROM drafts WHERE user_id = $1', [userId]);
+    return rows[0]?.data || [];
+  }
+  return readJSON(`drafts/${userId}.json`, []);
+}
+
+async function dbSaveDrafts(userId, drafts) {
+  if (USE_PG) {
+    await pool.query(
+      'INSERT INTO drafts (user_id, data) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET data = $2',
+      [userId, JSON.stringify(drafts)]);
+  } else {
+    writeJSON(`drafts/${userId}.json`, drafts);
   }
 }
 
@@ -220,6 +242,17 @@ app.post('/api/import', requireAuth, async (req, res) => {
   await dbSaveEntries(req.user.id, entries);
   if (settings && typeof settings === 'object') await dbSaveSettings(req.user.id, settings);
   res.json({ ok: true, count: entries.length });
+});
+
+app.get('/api/drafts', requireAuth, async (req, res) => {
+  res.json(await dbGetDrafts(req.user.id));
+});
+
+app.post('/api/drafts', requireAuth, async (req, res) => {
+  const { drafts } = req.body;
+  if (!Array.isArray(drafts)) return res.status(400).json({ error: 'drafts moet een array zijn' });
+  await dbSaveDrafts(req.user.id, drafts);
+  res.json({ ok: true });
 });
 
 app.get('/api/health', (_, res) => res.json({ ok: true, mode: USE_PG ? 'postgres' : 'files' }));
