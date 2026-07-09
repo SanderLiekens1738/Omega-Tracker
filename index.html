@@ -236,8 +236,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .modal-overlay{
   position:fixed;inset:0;z-index:200;
   background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;padding:20px;
-  animation:fadeIn .15s ease;
+  display:flex;align-items:center;justify-content:center;
+  padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  animation:fadeIn .15s ease;overflow-y:auto;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{
@@ -245,6 +246,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   padding:32px;width:100%;max-width:520px;
   animation:slideUp .2s ease;
   box-shadow:0 40px 100px rgba(0,0,0,0.8);
+  max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;
 }
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-title{font-size:22px;font-weight:700;letter-spacing:-0.6px;margin-bottom:6px}
@@ -602,7 +604,7 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
 .mobile-menu-action:hover{background:var(--surface);color:var(--text)}
 .mobile-menu-action.danger{color:var(--red)}
 .mobile-menu-action.danger:hover{background:rgba(255,69,58,0.08)}
-@media(max-width:700px){
+@media(max-width:960px){
   .hamburger-btn{display:flex}
   .nav-tabs{display:none}
   .nav-desktop-only{display:none !important}
@@ -653,16 +655,27 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   .recent-amount{font-size:13px}
   .recent-dot{width:28px;height:28px;font-size:12px}
   /* Modal + settings */
-  .modal{padding:24px 20px;border-radius:20px}
+  .modal{padding:20px 16px;border-radius:20px;max-height:85dvh}
+  .modal-overlay{align-items:flex-start;padding-top:calc(env(safe-area-inset-top) + 68px);padding-left:12px;padding-right:12px;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)}
   .modal-title{font-size:19px}
+  .modal-actions{flex-wrap:wrap;gap:8px}
+  .modal-actions .btn{flex:1;min-width:100px;text-align:center;justify-content:center}
   .form-grid{grid-template-columns:1fr}
   .settings-grid{grid-template-columns:1fr}
-  /* Week nav touch targets */
-  .week-nav-btn{width:38px;height:38px;font-size:18px}
+  /* Touch targets */
+  .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .btn-sm{min-height:36px}
+  .week-nav-btn{width:44px;height:44px;font-size:18px}
+  .filter-select{min-height:40px}
   /* Chart */
   .chart-month-label{font-size:8px}
   .chart-legend{gap:10px}
   .legend-item{font-size:11px}
+  /* Drafts */
+  .draft-card-actions{gap:6px}
+  .draft-card-actions .btn{flex:1;min-width:0;text-align:center}
+  /* Page bottom breathing room for fixed elements */
+  .page{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
 }
 @media(max-width:480px){
   .week-day-grid{grid-template-columns:repeat(2,1fr) !important}
@@ -754,15 +767,22 @@ html[data-theme="light"] .install-banner{box-shadow:0 8px 32px rgba(0,0,0,0.14)}
 }
 
 /* ── Social page ─────────────────────────────────────────────────── */
-.social-page{display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden}
-.social-tabs{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}
-.social-tab{padding:12px 20px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;position:relative;white-space:nowrap}
+.social-page{
+  display:flex;flex-direction:column;
+  position:fixed;
+  top:calc(52px + env(safe-area-inset-top));
+  left:0;right:0;bottom:0;
+  background:var(--bg);
+}
+.social-tabs{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.social-tabs::-webkit-scrollbar{display:none}
+.social-tab{padding:12px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;position:relative;white-space:nowrap;flex-shrink:0;min-height:44px}
 .social-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .social-tab:hover:not(.active){color:var(--text)}
-.social-inner{flex:1;overflow-y:auto;overflow-x:hidden}
+.social-inner{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
 
 /* Feed */
-.feed-wrap{padding:16px;max-width:640px;margin:0 auto}
+.feed-wrap{padding:16px;max-width:640px;margin:0 auto;width:100%;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .feed-compose{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:18px}
 .feed-compose-textarea{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;color:var(--text);font-size:15px;resize:none;font-family:inherit;box-sizing:border-box;margin-bottom:10px;line-height:1.5}
 .feed-compose-textarea:focus{outline:none;border-color:var(--gold)}
@@ -784,8 +804,8 @@ html[data-theme="light"] .install-banner{box-shadow:0 8px 32px rgba(0,0,0,0.14)}
 .feed-empty-icon{font-size:44px;margin-bottom:10px}
 
 /* Chat */
-.chat-outer{display:flex;flex-direction:column;height:100%;padding:0}
-.chat-messages{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.chat-outer{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;min-height:0}
 .chat-msg{display:flex;gap:8px;align-items:flex-end;max-width:80%}
 .chat-msg.mine{align-self:flex-end;flex-direction:row-reverse}
 .chat-msg-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));color:#000;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -796,14 +816,14 @@ html[data-theme="light"] .install-banner{box-shadow:0 8px 32px rgba(0,0,0,0.14)}
 .chat-msg.mine .chat-text{color:#000}
 .chat-time{font-size:10px;color:var(--text2);margin-top:4px;text-align:right}
 .chat-msg.mine .chat-time{color:rgba(0,0,0,.5)}
-.chat-input-bar{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
+.chat-input-bar{display:flex;gap:8px;padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .chat-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:22px;padding:10px 16px;color:var(--text);font-size:14px;font-family:inherit}
 .chat-input:focus{outline:none;border-color:var(--gold)}
 .chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--gold);color:#000;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
 .chat-send-btn:disabled{opacity:.4;cursor:default}
 
 /* DM */
-.dm-list{padding:12px 16px}
+.dm-list{padding:12px 16px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 .dm-user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border2);border-radius:14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s}
 .dm-user-row:hover{border-color:var(--gold)}
 .dm-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#000;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1323,7 +1343,9 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
     startTime: editEntry.startTime,
     endTime: editEntry.endTime || '',
     extraDays: editEntry.extraDays || 0,
-  } : { date: today, jobType: 'Lossen', vessel: '', location: '', startTime: '', endTime: '', extraDays: 0 });
+    km: editEntry.kmDistance ? String(editEntry.kmDistance) : '',
+  } : { date: today, jobType: 'Lossen', vessel: '', location: '', startTime: '', endTime: '', extraDays: 0, km: '' });
+  const [kmCopied, setKmCopied] = useState(false);
 
   const calc = useMemo(() => {
     if (!form.date || !form.startTime || !form.endTime) return null;
@@ -1360,6 +1382,8 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
       earningsExclVAT: calc.exclVAT,
       isSat: calc.isSat,
       isSun: calc.isSun,
+      kmDistance: Number(form.km) || 0,
+      kmEarnings: Number(form.km) ? Number(form.km) * 2 * 0.25 : 0,
     };
     onSave(entry);
   }
@@ -1474,6 +1498,10 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
             <label>Location</label>
             <input type="text" className="input" placeholder="e.g. Euro-Silo Gent" value={form.location} onChange={e => upd('location', e.target.value)}/>
           </div>
+          <div className="field">
+            <label>Km <span style={{color:'var(--text3)',fontWeight:400,textTransform:'none',fontSize:'11px'}}>één richting</span></label>
+            <input type="number" className="input" placeholder="e.g. 35" min="0" value={form.km} onChange={e => upd('km', e.target.value)}/>
+          </div>
         </div>
         {form.vessel && form.location && (
           <div style={{fontSize:'12px',color:'var(--text2)',padding:'8px 12px',background:'var(--surface)',borderRadius:'8px',marginTop:'4px',fontStyle:'italic'}}>
@@ -1503,6 +1531,29 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
               <span>Total (incl. VAT)</span>
               <span style={{color:'var(--gold)'}}>{fmtDec(calc.inclVAT)}</span>
             </div>
+            {Number(form.km) > 0 && (
+              <div className="calc-row" style={{borderTop:'1px solid var(--border2)',paddingTop:'8px',marginTop:'4px'}}>
+                <span style={{color:'var(--text2)'}}>Km vergoeding ({form.km}km × 2 × €0.25)</span>
+                <span style={{color:'var(--green)'}}>{fmtDec(Number(form.km) * 2 * 0.25)}</span>
+              </div>
+            )}
+          </div>
+        )}
+        {Number(form.km) > 0 && form.location.trim() && (
+          <div style={{marginTop:'10px',padding:'12px 14px',background:'var(--surface)',borderRadius:'10px',border:'1px solid var(--border2)'}}>
+            <div style={{fontSize:'11px',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.3px',fontWeight:600,marginBottom:'8px'}}>Km vergoeding bericht</div>
+            <div style={{fontFamily:'monospace',fontSize:'13px',color:'var(--text)',lineHeight:'1.6',whiteSpace:'pre',userSelect:'all'}}>
+              {`van Tulpenlaan 16 Schoten naar ${form.location.trim()}\ntotaal ${Number(form.km) * 2}KM`}
+            </div>
+            <button
+              className={`btn btn-sm${kmCopied ? ' copied' : ''}`}
+              style={{marginTop:'10px',background:kmCopied?'rgba(48,209,88,0.1)':'var(--surface2)',color:kmCopied?'var(--green)':'var(--text2)',border:`1px solid ${kmCopied?'rgba(48,209,88,0.3)':'var(--border2)'}`,transition:'all .2s'}}
+              onClick={() => {
+                navigator.clipboard.writeText(`van Tulpenlaan 16 Schoten naar ${form.location.trim()}\ntotaal ${Number(form.km) * 2}KM`);
+                setKmCopied(true);
+                setTimeout(() => setKmCopied(false), 2000);
+              }}
+            >{kmCopied ? '✓ Gekopieerd' : '📋 Kopieer'}</button>
           </div>
         )}
 
