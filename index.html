@@ -135,6 +135,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 /* Two-column responsive grid (bag+belasting, top-ships+top-locs) */
 .two-col-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.q-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stats-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
 @media(max-width:900px){.stats-top-grid{grid-template-columns:1fr}}
 .stat-card{
@@ -628,6 +629,7 @@ html[data-theme="light"] .color-swatch.active{box-shadow:0 0 0 3px rgba(0,0,0,0.
   /* Grids → single col */
   .two-col-grid{grid-template-columns:1fr}
   .stats-top-grid{grid-template-columns:1fr}
+  .q-grid{grid-template-columns:1fr 1fr}
   /* Money bag: stack SVG over mini 2×2 stats */
   .bag-container{flex-direction:column;align-items:center;gap:12px}
   .bag-svg-wrap{animation:none}
@@ -1779,6 +1781,139 @@ function FunBadges({ entries }) {
 }
 
 // ── Stats View ───────────────────────────────────────────────────────
+function KwartaalStats({ entries, settings }) {
+  const curYear = new Date().getFullYear();
+  const [year, setYear] = useState(curYear);
+
+  const years = useMemo(() => {
+    const ys = new Set(entries.map(e => e.date.slice(0,4)));
+    ys.add(String(curYear));
+    return [...ys].sort().reverse();
+  }, [entries]);
+
+  const calcBlock = (subset) => {
+    const inclVAT = subset.reduce((s,e) => s + e.earningsInclVAT, 0);
+    const exclVAT = inclVAT / (1 + settings.vatRate);
+    const btw     = inclVAT - exclVAT;
+    const tax     = exclVAT * settings.taxRate;
+    const netto   = exclVAT - tax;
+    return { inclVAT, exclVAT, btw, tax, netto, count: subset.length, hours: subset.reduce((s,e) => s+e.totalHours,0) };
+  };
+
+  const yearEntries = useMemo(() => entries.filter(e => e.date.startsWith(String(year))), [entries, year]);
+
+  const quarters = useMemo(() => [
+    { label:'Q1', sub:'Jan – Mrt', months:[1,2,3] },
+    { label:'Q2', sub:'Apr – Jun', months:[4,5,6] },
+    { label:'Q3', sub:'Jul – Sep', months:[7,8,9] },
+    { label:'Q4', sub:'Okt – Dec', months:[10,11,12] },
+  ].map(q => ({
+    ...q,
+    ...calcBlock(yearEntries.filter(e => q.months.includes(parseInt(e.date.slice(5,7))))),
+  })), [yearEntries, settings]);
+
+  const months = useMemo(() => Array.from({length:12}, (_,i) => {
+    const m = i + 1;
+    const mStr = String(m).padStart(2,'0');
+    return {
+      name: new Date(year, i, 1).toLocaleDateString('nl-BE',{month:'long'}),
+      ...calcBlock(yearEntries.filter(e => e.date.startsWith(`${year}-${mStr}`))),
+    };
+  }), [yearEntries, settings, year]);
+
+  const yearTotal = useMemo(() => calcBlock(yearEntries), [yearEntries, settings]);
+
+  const qColors = ['var(--gold)','var(--blue)','var(--green)','var(--purple)'];
+  const Row = ({label, value, color, bold}) => (
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid var(--border)'}}>
+      <span style={{fontSize:'12px',color:'var(--text2)'}}>{label}</span>
+      <span style={{fontSize:'13px',fontWeight:bold?700:500,color:color||'var(--text)'}}>{value}</span>
+    </div>
+  );
+
+  return (
+    <div className="card" style={{marginBottom:'20px'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
+        <div className="card-title" style={{marginBottom:0}}>Kwartaal & Maand overzicht</div>
+        <div style={{display:'flex',gap:'6px'}}>
+          {years.map(y => (
+            <button key={y} onClick={() => setYear(Number(y))}
+              style={{padding:'5px 12px',borderRadius:'8px',border:'1px solid',cursor:'pointer',fontSize:'12px',fontFamily:'var(--font)',fontWeight:600,
+                background:year===Number(y)?'var(--gold)':'var(--surface2)',
+                color:year===Number(y)?'#000':'var(--text2)',
+                borderColor:year===Number(y)?'var(--gold)':'var(--border2)'}}>
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quarter cards */}
+      <div className="q-grid" style={{marginBottom:'20px'}}>
+        {quarters.map((q,i) => (
+          <div key={q.label} style={{background:'var(--surface)',borderRadius:'12px',padding:'14px 12px',border:'1px solid var(--border2)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'10px'}}>
+              <span style={{fontSize:'16px',fontWeight:700,color:qColors[i]}}>{q.label}</span>
+              <span style={{fontSize:'11px',color:'var(--text3)'}}>{q.sub}</span>
+            </div>
+            {q.count === 0
+              ? <div style={{fontSize:'12px',color:'var(--text3)',textAlign:'center',padding:'12px 0'}}>Geen shifts</div>
+              : <>
+                  <div style={{fontSize:'11px',color:'var(--text3)',marginBottom:'8px'}}>{q.count} shift{q.count>1?'s':''} · {q.hours.toFixed(1)}h</div>
+                  <Row label="Bruto" value={fmtDec(q.inclVAT)}/>
+                  <Row label="BTW 21%" value={`-${fmtDec(q.btw)}`} color="var(--red)"/>
+                  <Row label="Excl. BTW" value={fmtDec(q.exclVAT)}/>
+                  <Row label={`Tax ${(settings.taxRate*100).toFixed(0)}%`} value={`-${fmtDec(q.tax)}`} color="var(--red)"/>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'8px',padding:'8px 10px',background:`rgba(${i===0?'255,214,10':i===1?'10,132,255':i===2?'48,209,88':'191,90,242'},0.1)`,borderRadius:'8px'}}>
+                    <span style={{fontSize:'12px',fontWeight:600,color:qColors[i]}}>Netto</span>
+                    <span style={{fontSize:'14px',fontWeight:700,color:qColors[i]}}>{fmtDec(q.netto)}</span>
+                  </div>
+                </>
+            }
+          </div>
+        ))}
+      </div>
+
+      {/* Monthly table */}
+      <div style={{overflowX:'auto'}}>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'13px'}}>
+          <thead>
+            <tr style={{borderBottom:'2px solid var(--border)'}}>
+              {['Maand','Shifts','Bruto','BTW 21%','Excl. BTW',`Tax ${(settings.taxRate*100).toFixed(0)}%`,'Netto'].map(h => (
+                <th key={h} style={{padding:'7px 10px',textAlign:h==='Maand'||h==='Shifts'?'left':'right',fontSize:'11px',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.3px',fontWeight:600,whiteSpace:'nowrap'}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {months.map((m,i) => (
+              <tr key={i} style={{borderBottom:'1px solid var(--border)',opacity:m.count===0?0.35:1}}>
+                <td style={{padding:'8px 10px',fontWeight:500,textTransform:'capitalize'}}>{m.name}</td>
+                <td style={{padding:'8px 10px',color:'var(--text3)'}}>{m.count}</td>
+                <td style={{padding:'8px 10px',textAlign:'right',fontWeight:500}}>{m.count>0?fmtDec(m.inclVAT):'–'}</td>
+                <td style={{padding:'8px 10px',textAlign:'right',color:'var(--red)'}}>{m.count>0?`-${fmtDec(m.btw)}`:'–'}</td>
+                <td style={{padding:'8px 10px',textAlign:'right'}}>{m.count>0?fmtDec(m.exclVAT):'–'}</td>
+                <td style={{padding:'8px 10px',textAlign:'right',color:'var(--red)'}}>{m.count>0?`-${fmtDec(m.tax)}`:'–'}</td>
+                <td style={{padding:'8px 10px',textAlign:'right',fontWeight:700,color:'var(--green)'}}>{m.count>0?fmtDec(m.netto):'–'}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{borderTop:'2px solid var(--border)',background:'var(--surface)'}}>
+              <td style={{padding:'9px 10px',fontWeight:700}}>Totaal {year}</td>
+              <td style={{padding:'9px 10px',color:'var(--text2)',fontWeight:600}}>{yearTotal.count}</td>
+              <td style={{padding:'9px 10px',textAlign:'right',fontWeight:700}}>{fmtDec(yearTotal.inclVAT)}</td>
+              <td style={{padding:'9px 10px',textAlign:'right',color:'var(--red)',fontWeight:700}}>-{fmtDec(yearTotal.btw)}</td>
+              <td style={{padding:'9px 10px',textAlign:'right',fontWeight:700}}>{fmtDec(yearTotal.exclVAT)}</td>
+              <td style={{padding:'9px 10px',textAlign:'right',color:'var(--red)',fontWeight:700}}>-{fmtDec(yearTotal.tax)}</td>
+              <td style={{padding:'9px 10px',textAlign:'right',fontWeight:700,color:'var(--green)'}}>{fmtDec(yearTotal.netto)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function StatsView({ entries, settings }) {
   const stats = useMemo(() => {
     const weekdayE = entries.filter(e => !e.isSat && !e.isSun).reduce((s,e) => s + e.earningsInclVAT, 0);
@@ -1826,6 +1961,8 @@ function StatsView({ entries, settings }) {
           <div className="section-sub">Weekdag vs weekend · top schepen · top locaties</div>
         </div>
       </div>
+
+      <KwartaalStats entries={entries} settings={settings}/>
 
       <div className="stats-top-grid">
         <DonutChart weekday={stats.weekdayE} weekend={stats.weekendE}/>
