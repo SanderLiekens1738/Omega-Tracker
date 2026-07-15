@@ -2392,6 +2392,63 @@ function InvoiceTextBox({ weekEntries }) {
   );
 }
 
+function WeeklyKmBox({ weekEntries, weekLabel }) {
+  const [copied, setCopied] = useState(false);
+  const kmEntries = weekEntries.filter(e => Number(e.kmDistance) > 0);
+  if (kmEntries.length === 0) return null;
+
+  const totalOneWay  = kmEntries.reduce((s,e) => s + (Number(e.kmDistance) || 0), 0);
+  const totalRound   = totalOneWay * 2;
+  const totalEarnings = totalRound * 0.25;
+
+  // group by location
+  const byLoc = {};
+  kmEntries.forEach(e => {
+    const loc = (e.location || e.comment || 'Onbekend').trim();
+    byLoc[loc] = (byLoc[loc] || 0) + (Number(e.kmDistance) || 0);
+  });
+
+  const lines = Object.entries(byLoc)
+    .map(([loc, km]) => `van Tulpenlaan 16 Schoten naar ${loc}\ntotaal ${km * 2}KM`)
+    .join('\n\n');
+  const copyText = Object.keys(byLoc).length > 1
+    ? `${lines}\n\nWeek totaal: ${totalRound}KM · €${totalEarnings.toFixed(2)}`
+    : lines;
+
+  return (
+    <div style={{marginTop:'20px'}}>
+      <div style={{fontSize:'16px',fontWeight:'600',letterSpacing:'-0.3px',marginBottom:'12px'}}>
+        Km vergoeding <span style={{fontSize:'13px',color:'var(--text2)',fontWeight:'400'}}>deze week</span>
+      </div>
+      <div style={{background:'var(--surface)',border:'1px solid rgba(48,209,88,0.3)',borderRadius:'16px',padding:'18px 20px'}}>
+        <div style={{display:'flex',gap:'28px',marginBottom:'14px',flexWrap:'wrap'}}>
+          <div>
+            <div style={{fontSize:'11px',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Totaal gereden</div>
+            <div style={{fontSize:'24px',fontWeight:'700',color:'var(--green)',letterSpacing:'-0.6px'}}>{totalRound} KM</div>
+            <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'3px'}}>{kmEntries.length} dag{kmEntries.length>1?'en':''} · {totalOneWay}km enkele richting</div>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Km vergoeding</div>
+            <div style={{fontSize:'24px',fontWeight:'700',color:'var(--green)',letterSpacing:'-0.6px'}}>{fmtDec(totalEarnings)}</div>
+            <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'3px'}}>€0.25 × {totalRound}km</div>
+          </div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+          <div style={{fontSize:'11px',fontWeight:700,color:'var(--green)',textTransform:'uppercase',letterSpacing:'0.4px'}}>Km bericht</div>
+          <button
+            className={`copy-btn${copied?' copied':''}`}
+            onClick={() => { navigator.clipboard.writeText(copyText); setCopied(true); setTimeout(() => setCopied(false), 2200); }}
+            style={{borderColor:'rgba(48,209,88,0.4)',color:'var(--green)',background:copied?'rgba(48,209,88,0.1)':'rgba(48,209,88,0.06)'}}
+          >{copied ? '✓ Gekopieerd!' : 'Kopiëren'}</button>
+        </div>
+        <div className="invoice-box" style={{borderColor:'rgba(48,209,88,0.2)',whiteSpace:'pre'}}>
+          {copyText}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Weekly View ──────────────────────────────────────────────────────
 function WeeklyView({ entries, settings, onAdd }) {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -2501,6 +2558,7 @@ function WeeklyView({ entries, settings, onAdd }) {
         </div>
       )}
       <InvoiceTextBox weekEntries={weekDays.flatMap(d => d.entries)}/>
+      <WeeklyKmBox weekEntries={weekDays.flatMap(d => d.entries)} weekLabel={weekLabel}/>
     </div>
   );
 }
