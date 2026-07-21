@@ -2712,7 +2712,7 @@ function AuthPage({ onLogin }) {
         res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user, password: pass }),
+          body: JSON.stringify({ username: user.trim().toLowerCase(), password: pass }),
         });
       } catch {
         throw new Error('Kan server niet bereiken — zorg dat je de app opent via http://localhost:3000');
@@ -2815,6 +2815,7 @@ function AuthPage({ onLogin }) {
             <label className="auth-label">Gebruikersnaam</label>
             <input className="auth-input" type="text" autoComplete="username"
               placeholder="bijv. sander" value={user}
+              autoCapitalize="none" autoCorrect="off" spellCheck={false}
               onChange={e => setUser(e.target.value)} required/>
           </div>
           <div className="auth-field">
