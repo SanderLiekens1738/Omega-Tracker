@@ -2266,6 +2266,7 @@ function HistoryView({ entries, onAdd, onEdit, onDelete, onBulkDelete }) {
                 <th>Hours</th>
                 <th>Excl. VAT</th>
                 <th>Incl. VAT</th>
+                <th>Km</th>
                 <th style={{textAlign:'center'}}>{selectMode ? (
                   <input type="checkbox"
                     checked={selected.size === filtered.length && filtered.length > 0}
@@ -2297,6 +2298,11 @@ function HistoryView({ entries, onAdd, onEdit, onDelete, onBulkDelete }) {
                     <td style={{color:'var(--text2)',fontVariantNumeric:'tabular-nums',fontSize:'13px'}}>{fmtDec(exclVAT)}</td>
                     <td className={`entry-earnings${(e.isSat||e.isSun)?' weekend':''}`} style={{fontVariantNumeric:'tabular-nums'}}>
                       {fmtDec(e.earningsInclVAT)}
+                    </td>
+                    <td style={{fontSize:'12px',whiteSpace:'nowrap'}}>
+                      {Number(e.kmDistance) > 0
+                        ? <><div style={{fontWeight:600,color:'var(--green)'}}>{e.kmDistance * 2} km</div><div style={{color:'var(--text3)'}}>{fmtDec(e.kmDistance * 2 * 0.25)}</div></>
+                        : <span style={{color:'var(--text3)'}}>–</span>}
                     </td>
                     <td style={{textAlign:'center'}}>
                       {selectMode ? (
@@ -2536,6 +2542,7 @@ function WeeklyView({ entries, settings, onAdd }) {
                 <th>Time</th>
                 <th>Hours</th>
                 <th>Earned (incl. VAT)</th>
+                <th>Km</th>
               </tr>
             </thead>
             <tbody>
@@ -2550,6 +2557,11 @@ function WeeklyView({ entries, settings, onAdd }) {
                   <td style={{color:'var(--text2)',fontSize:'12px'}}>{e.startTime}–{e.endTime}</td>
                   <td className="entry-hours">{fmtNum(e.totalHours,1)}h</td>
                   <td className={`entry-earnings${(e.isSat||e.isSun)?' weekend':''}`}>{fmtDec(e.earningsInclVAT)}</td>
+                  <td style={{fontSize:'12px',whiteSpace:'nowrap'}}>
+                    {Number(e.kmDistance) > 0
+                      ? <><div style={{fontWeight:600,color:'var(--green)'}}>{e.kmDistance * 2} km</div><div style={{color:'var(--text3)'}}>{fmtDec(e.kmDistance * 2 * 0.25)}</div></>
+                      : <span style={{color:'var(--text3)'}}>–</span>}
+                  </td>
                 </tr>
               )))}
             </tbody>
