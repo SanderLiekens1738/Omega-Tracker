@@ -3565,33 +3565,55 @@ function App() {
   useEffect(() => {
     if (!currentUser) return;
     setLoading(true);
+    const backupKey = `omega_autobackup_${currentUser.username}`;
     Promise.all([
       API.call('GET', '/api/entries'),
       API.call('GET', '/api/settings'),
     ]).then(([ents, setts]) => {
       const serverEntries = Array.isArray(ents) ? ents : [];
       if (setts && typeof setts === 'object') setSettings({ ...DEF_SETTINGS, ...setts });
-      setEntries(serverEntries);
 
-      // Check for old localStorage data to migrate (unscoped key from pre-account version)
       if (serverEntries.length > 0) {
-        // User already has server data — clear any stale unscoped localStorage so
-        // a newly registered account on this device never sees another user's data.
+        // Server has data — mirror it locally as a safety backup
+        setEntries(serverEntries);
+        try { localStorage.setItem(backupKey, JSON.stringify(serverEntries)); } catch {}
         localStorage.removeItem('omega_entries');
         localStorage.removeItem('omega_settings');
-      } else if (!localStorage.getItem('omega_entries_claimed')) {
+      } else {
+        // Server has no data — try to restore from local backup automatically
+        let restored = false;
         try {
-          const lsEntries  = JSON.parse(localStorage.getItem('omega_entries') || 'null');
-          const lsSettings = JSON.parse(localStorage.getItem('omega_settings') || 'null');
-          if (Array.isArray(lsEntries) && lsEntries.length > 0) {
-            setLocalData({ entries: lsEntries, settings: lsSettings });
+          const backup = JSON.parse(localStorage.getItem(backupKey) || 'null');
+          if (Array.isArray(backup) && backup.length > 0) {
+            setEntries(backup);
+            // Push backup back to server silently
+            API.call('POST', '/api/import', { entries: backup, settings: setts }).catch(() => {});
+            restored = true;
           }
-        } catch { /* ignore */ }
+        } catch {}
+
+        if (!restored && !localStorage.getItem('omega_entries_claimed')) {
+          try {
+            const lsEntries  = JSON.parse(localStorage.getItem('omega_entries') || 'null');
+            const lsSettings = JSON.parse(localStorage.getItem('omega_settings') || 'null');
+            if (Array.isArray(lsEntries) && lsEntries.length > 0) {
+              setLocalData({ entries: lsEntries, settings: lsSettings });
+            }
+          } catch {}
+        }
       }
       setDataReady(true);
     }).catch(() => setDataReady(true))
       .finally(() => setLoading(false));
   }, [currentUser]);
+
+  // ── Mirror entries to localStorage whenever they change ───────────
+  useEffect(() => {
+    if (!currentUser || !dataReady || entries.length === 0) return;
+    try {
+      localStorage.setItem(`omega_autobackup_${currentUser.username}`, JSON.stringify(entries));
+    } catch {}
+  }, [entries, currentUser, dataReady]);
 
   // ── Helpers ───────────────────────────────────────────────────────
   function showToast(msg, icon = '✓') {
