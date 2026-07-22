@@ -3499,6 +3499,14 @@ function App() {
   const [loading,    setLoading]  = useState(false);
   const [dataReady,  setDataReady]= useState(false);
 
+  // Recalculate earnings on-the-fly so historical entries with wrong stored values display correctly
+  const normalizedEntries = useMemo(() =>
+    entries.map(e => {
+      if (!e.startTime || !e.endTime) return e;
+      const earn = calcEarnings(e.totalHours, e.date, settings, e.startTime, e.endTime, Number(e.extraDays) || 0);
+      return { ...e, earningsInclVAT: earn.inclVAT, earningsExclVAT: earn.exclVAT };
+    }), [entries, settings]);
+
   // ── UI state ──────────────────────────────────────────────────────
   const [view,         setView]         = useState('dashboard');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -3898,10 +3906,10 @@ function App() {
         </div>
       )}
 
-      {view === 'dashboard' && <Dashboard entries={entries} settings={settings} onAdd={openAdd}/>}
-      {view === 'history'   && <HistoryView entries={entries} onAdd={openAdd} onEdit={handleEdit} onDelete={handleDelete} onBulkDelete={handleBulkDelete}/>}
-      {view === 'weekly'    && <WeeklyView entries={entries} settings={settings} onAdd={openAdd}/>}
-      {view === 'stats'     && <StatsView entries={entries} settings={settings}/>}
+      {view === 'dashboard' && <Dashboard entries={normalizedEntries} settings={settings} onAdd={openAdd}/>}
+      {view === 'history'   && <HistoryView entries={normalizedEntries} onAdd={openAdd} onEdit={handleEdit} onDelete={handleDelete} onBulkDelete={handleBulkDelete}/>}
+      {view === 'weekly'    && <WeeklyView entries={normalizedEntries} settings={settings} onAdd={openAdd}/>}
+      {view === 'stats'     && <StatsView entries={normalizedEntries} settings={settings}/>}
       {view === 'drafts'    && (
         <DraftsView
           drafts={drafts}
