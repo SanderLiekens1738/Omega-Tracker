@@ -2498,11 +2498,13 @@ function InvoiceSection({ title, entries, accentColor }) {
 }
 
 function InvoiceTextBox({ weekEntries }) {
-  const weekday = weekEntries.filter(e => !e.isSat && !e.isSun).sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-  const saturday = weekEntries.filter(e => e.isSat).sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-  const sunday = weekEntries.filter(e => e.isSun).sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+  const sort = arr => arr.sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+  const weekday  = sort(weekEntries.filter(e => !e.isSat && !e.isSun));
+  const saturday = sort(weekEntries.filter(e => e.isSat));
+  const holiday  = sort(weekEntries.filter(e => e.isSun && isBelgianHoliday(e.date)));
+  const sunday   = sort(weekEntries.filter(e => e.isSun && !isBelgianHoliday(e.date)));
 
-  if (weekday.length === 0 && saturday.length === 0 && sunday.length === 0) return null;
+  if (weekday.length === 0 && saturday.length === 0 && holiday.length === 0 && sunday.length === 0) return null;
 
   return (
     <div style={{marginTop:'20px'}}>
@@ -2510,9 +2512,10 @@ function InvoiceTextBox({ weekEntries }) {
         Factuur tekst <span style={{fontSize:'13px',color:'var(--text2)',fontWeight:'400'}}>kopieer per tarief</span>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-        {weekday.length > 0 && <InvoiceSection title="Dagtarief (Ma – Vr)" entries={weekday} accentColor="#f0a500"/>}
-        {saturday.length > 0 && <InvoiceSection title="Zaterdagtarief" entries={saturday} accentColor="#0a84ff"/>}
-        {sunday.length > 0 && <InvoiceSection title="Zondagtarief" entries={sunday} accentColor="#bf5af2"/>}
+        {weekday.length > 0  && <InvoiceSection title="Dagtarief (Ma – Vr)" entries={weekday}  accentColor="#f0a500"/>}
+        {saturday.length > 0 && <InvoiceSection title="Zaterdagtarief"       entries={saturday} accentColor="#0a84ff"/>}
+        {holiday.length > 0  && <InvoiceSection title="Feestdag tarief"       entries={holiday}  accentColor="#bf5af2"/>}
+        {sunday.length > 0   && <InvoiceSection title="Zondagtarief"          entries={sunday}   accentColor="#bf5af2"/>}
       </div>
     </div>
   );
