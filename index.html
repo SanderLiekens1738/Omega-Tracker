@@ -3016,7 +3016,9 @@ function DraftsView({ drafts, settings, onDelete, onStart, onStop, onResume, onC
             ? calcHours(d.startTime, d.endTime, Number(d.extraDays||0))
             : 0;
           const earn = hours > 0 ? calcEarnings(hours, d.date, settings) : null;
-          const cardClass = d.isActive ? 'active' : d.endTime ? 'ready' : '';
+          const isPending = d.isActive && d.date && d.startTime &&
+            new Date(`${d.date}T${d.startTime}:00`) > new Date();
+          const cardClass = d.isActive ? (isPending ? '' : 'active') : d.endTime ? 'ready' : '';
           const isStopConfirm = confirmStop === d.id;
 
           return (
@@ -3032,8 +3034,9 @@ function DraftsView({ drafts, settings, onDelete, onStart, onStop, onResume, onC
                     {earn ? ` · ${fmtDec(earn.inclVAT)} (${fmtNum(hours,1)}h)` : ''}
                   </div>
                 </div>
-                <div className={`draft-card-status ${d.isActive ? 'draft-status-active' : d.endTime ? 'draft-status-ready' : 'draft-status-incomplete'}`}>
-                  {d.isActive ? '🔴 Actief' : d.endTime ? '✓ Klaar' : '⚠ Onvoltooid'}
+                <div className={`draft-card-status ${d.isActive ? (isPending ? 'draft-status-incomplete' : 'draft-status-active') : d.endTime ? 'draft-status-ready' : 'draft-status-incomplete'}`}
+                  style={isPending ? {background:'rgba(240,165,0,0.1)',color:'var(--gold)'} : {}}>
+                  {d.isActive ? (isPending ? `⏰ Gepland ${d.startTime}` : '🔴 Actief') : d.endTime ? '✓ Klaar' : '⚠ Onvoltooid'}
                 </div>
               </div>
 
@@ -3074,21 +3077,32 @@ function DraftsView({ drafts, settings, onDelete, onStart, onStop, onResume, onC
 // ── Active Timer Chip ─────────────────────────────────────────────────
 function ActiveTimerChip({ drafts, onStop }) {
   const activeDraft = drafts.find(d => d.isActive);
-  const [elapsed, setElapsed] = useState('');
+  const [display, setDisplay]   = useState('');
+  const [pending, setPending]   = useState(false); // true = countdown mode
   const [confirmStop, setConfirmStop] = useState(false);
 
   useEffect(() => {
-    if (!activeDraft) { setElapsed(''); setConfirmStop(false); return; }
+    if (!activeDraft) { setDisplay(''); setConfirmStop(false); return; }
     function tick() {
       if (!activeDraft.date || !activeDraft.startTime) return;
       const start = new Date(`${activeDraft.date}T${activeDraft.startTime}:00`);
       const now = new Date();
-      let ms = now - start;
-      if (ms < 0) ms = 0;
-      const totalMin = Math.floor(ms / 60000);
-      const h = Math.floor(totalMin / 60);
-      const m = totalMin % 60;
-      setElapsed(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      const ms = now - start;
+      if (ms < 0) {
+        // countdown to start
+        setPending(true);
+        const totalMin = Math.ceil(-ms / 60000);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        setDisplay(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      } else {
+        // elapsed since start
+        setPending(false);
+        const totalMin = Math.floor(ms / 60000);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        setDisplay(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      }
     }
     tick();
     const t = setInterval(tick, 15000);
@@ -3108,16 +3122,18 @@ function ActiveTimerChip({ drafts, onStop }) {
   }
 
   return (
-    <div className="active-timer-chip">
-      <div className="timer-chip-dot"/>
+    <div className="active-timer-chip" style={pending ? {borderColor:'rgba(240,165,0,0.4)',background:'rgba(240,165,0,0.08)'} : {}}>
+      <div className="timer-chip-dot" style={pending ? {background:'var(--gold)',boxShadow:'0 0 6px var(--gold)'} : {}}/>
       <div className="timer-chip-info">
-        <div className="timer-chip-label">Live Timer</div>
+        <div className="timer-chip-label" style={pending ? {color:'var(--gold)'} : {}}>{pending ? `Shift begint om ${activeDraft.startTime}` : 'Live Timer'}</div>
         <div className="timer-chip-detail">
           {activeDraft.vessel}{activeDraft.location ? ` · ${activeDraft.location}` : ''}
         </div>
       </div>
-      <div className="timer-chip-elapsed">{elapsed}</div>
-      {confirmStop ? (
+      <div className="timer-chip-elapsed" style={pending ? {color:'var(--gold)',fontSize:'13px'} : {}}>
+        {pending ? `nog ${display}` : display}
+      </div>
+      {!pending && (confirmStop ? (
         <div className="timer-confirm-row">
           <span className="timer-confirm-time">Stop op {getRoundedTime()}?</span>
           <button className="timer-confirm-yes" onClick={() => { onStop(activeDraft.id); setConfirmStop(false); }}>✓</button>
@@ -3125,7 +3141,7 @@ function ActiveTimerChip({ drafts, onStop }) {
         </div>
       ) : (
         <button className="timer-stop-btn" onClick={() => setConfirmStop(true)}>■ Stop</button>
-      )}
+      ))}
     </div>
   );
 }
