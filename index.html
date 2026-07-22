@@ -906,14 +906,65 @@ function calcHours(start, end, extraDays = 0) {
   return Math.round(mins / 30) * 0.5;
 }
 
+// ── Belgian public holidays ──────────────────────────────────────────
+function easterSunday(y) {
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  const mo=Math.floor((h+l-7*m+114)/31),dy=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,dy);
+}
+function belgianHolidays(year) {
+  const e=easterSunday(year);
+  const add=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
+  const s=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return new Set([
+    `${year}-01-01`,       // Nieuwjaar
+    s(add(e,1)),           // Paasmaandag
+    `${year}-05-01`,       // Dag van de Arbeid
+    s(add(e,39)),          // Hemelvaartsdag
+    s(add(e,50)),          // Pinkstermaandag
+    `${year}-07-21`,       // Nationale feestdag
+    `${year}-08-15`,       // Onze-Lieve-Vrouw-Hemelvaart
+    `${year}-11-01`,       // Allerheiligen
+    `${year}-11-11`,       // Wapenstilstand
+    `${year}-12-25`,       // Kerstmis
+  ]);
+}
+const _holidayCache = {};
+function isBelgianHoliday(dateStr) {
+  const y = parseInt(dateStr);
+  if (!_holidayCache[y]) _holidayCache[y] = belgianHolidays(y);
+  return _holidayCache[y].has(dateStr);
+}
+function getHolidayName(dateStr) {
+  const names = {
+    '01-01':'Nieuwjaar','05-01':'Dag v/d Arbeid','07-21':'Nationale feestdag',
+    '08-15':'O.L.V. Hemelvaart','11-01':'Allerheiligen','11-11':'Wapenstilstand','12-25':'Kerstmis',
+  };
+  const mmdd = dateStr.slice(5);
+  if (names[mmdd]) return names[mmdd];
+  // variable holidays
+  const y = parseInt(dateStr);
+  const e = easterSunday(y);
+  const add=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
+  const s=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  if (dateStr===s(add(e,1)))  return 'Paasmaandag';
+  if (dateStr===s(add(e,39))) return 'Hemelvaartsdag';
+  if (dateStr===s(add(e,50))) return 'Pinkstermaandag';
+  return 'Feestdag';
+}
+
 function calcEarnings(hours, dateStr, settings) {
   const day = getDayOfWeek(dateStr);
   const isSat = day === 6;
-  const isSun = day === 0;
+  const isHoliday = isBelgianHoliday(dateStr);
+  const isSun = day === 0 || isHoliday;
   const rate = isSun ? settings.sundayRate : isSat ? settings.saturdayRate : settings.weekdayRate;
   const inclVAT = hours * rate;
   const exclVAT = inclVAT / (1 + settings.vatRate);
-  return { inclVAT, exclVAT, isSat, isSun, rate };
+  return { inclVAT, exclVAT, isSat, isSun, isHoliday, rate };
 }
 
 function formatDate(dateStr) {
@@ -1405,7 +1456,8 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
     });
   }
 
-  const rateName = calc ? (calc.isSun ? 'Sunday rate' : calc.isSat ? 'Saturday rate' : 'Weekday rate') : '';
+  const holidayName = form.date ? (isBelgianHoliday(form.date) ? getHolidayName(form.date) : null) : null;
+  const rateName = calc ? (calc.isHoliday && getDayOfWeek(form.date) !== 0 ? `Feestdag: ${getHolidayName(form.date)}` : calc.isSun ? 'Zondagtarief' : calc.isSat ? 'Zaterdagtarief' : 'Weekdagtarief') : '';
   const canSave = calc && form.vessel.trim().length > 0 && form.location.trim().length > 0;
 
   return (
@@ -1417,6 +1469,11 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
           <div className="field">
             <label>Start Date</label>
             <input type="date" className="input" value={form.date} onChange={e => upd('date', e.target.value)}/>
+            {holidayName && (
+              <div style={{marginTop:'6px',fontSize:'12px',fontWeight:600,color:'var(--purple)',background:'rgba(191,90,242,0.1)',border:'1px solid rgba(191,90,242,0.25)',borderRadius:'8px',padding:'5px 10px',display:'inline-flex',alignItems:'center',gap:'5px'}}>
+                🎉 {holidayName} — zondagtarief
+              </div>
+            )}
           </div>
           <div className="field">
             <label>Job Type</label>
