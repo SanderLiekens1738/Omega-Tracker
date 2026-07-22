@@ -1499,6 +1499,7 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
       startTime: form.startTime,
       endTime: form.endTime || '',
       extraDays: Number(form.extraDays),
+      kmDistance: Number(form.km) || 0,
       isActive,
     });
   }
@@ -3726,7 +3727,8 @@ function App() {
     }
     const hours = calcHours(draft.startTime, draft.endTime, Number(draft.extraDays || 0));
     if (hours <= 0) { showToast('Ongeldige tijden', '⚠'); return; }
-    const earn = calcEarnings(hours, draft.date, settings);
+    const earn = calcEarnings(hours, draft.date, settings, draft.startTime, draft.endTime, Number(draft.extraDays || 0));
+    const km = Number(draft.kmDistance) || 0;
     const entry = {
       id: uid(),
       date: draft.date,
@@ -3742,6 +3744,8 @@ function App() {
       earningsExclVAT: earn.exclVAT,
       isSat: earn.isSat,
       isSun: earn.isSun,
+      kmDistance: km,
+      kmEarnings: km * 2 * 0.25,
     };
     const next = [...entries, entry];
     setEntries(next);
