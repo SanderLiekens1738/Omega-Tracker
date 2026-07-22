@@ -956,15 +956,62 @@ function getHolidayName(dateStr) {
   return 'Feestdag';
 }
 
-function calcEarnings(hours, dateStr, settings) {
-  const day = getDayOfWeek(dateStr);
-  const isSat = day === 6;
+function calcEarnings(hours, dateStr, settings, startTime, endTime, extraDays) {
+  const fmtD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const rateFor = d => {
+    const wd = getDayOfWeek(d);
+    if (wd === 0 || isBelgianHoliday(d)) return settings.sundayRate;
+    if (wd === 6) return settings.saturdayRate;
+    return settings.weekdayRate;
+  };
+
+  const startDay = getDayOfWeek(dateStr);
   const isHoliday = isBelgianHoliday(dateStr);
-  const isSun = day === 0 || isHoliday;
-  const rate = isSun ? settings.sundayRate : isSat ? settings.saturdayRate : settings.weekdayRate;
+  const isSun = startDay === 0 || isHoliday;
+  const isSat = startDay === 6 && !isSun;
+
+  // Build per-day segments when times are available
+  let segments = null;
+  if (startTime && endTime) {
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins   = eh * 60 + em;
+    const xd = Number(extraDays) || 0;
+    const base = new Date(dateStr + 'T12:00:00');
+
+    if (xd === 0 && startMins > endMins) {
+      // Overnight crossing midnight once
+      const next = new Date(base); next.setDate(next.getDate() + 1);
+      segments = [
+        { date: dateStr,   hours: (24 * 60 - startMins) / 60 },
+        { date: fmtD(next), hours: endMins / 60 },
+      ];
+    } else if (xd > 0) {
+      segments = [{ date: dateStr, hours: (24 * 60 - startMins) / 60 }];
+      for (let d = 1; d < xd; d++) {
+        const dt = new Date(base); dt.setDate(dt.getDate() + d);
+        segments.push({ date: fmtD(dt), hours: 24 });
+      }
+      const last = new Date(base); last.setDate(last.getDate() + xd);
+      segments.push({ date: fmtD(last), hours: endMins / 60 });
+    }
+  }
+
+  if (segments) {
+    const rated = segments.map(s => ({ ...s, rate: rateFor(s.date) }));
+    const primaryRate = rateFor(dateStr);
+    const inclVAT = rated.reduce((sum, s) => sum + s.hours * s.rate, 0);
+    const exclVAT = inclVAT / (1 + settings.vatRate);
+    return { inclVAT, exclVAT, isSat, isSun, isHoliday, rate: primaryRate,
+             isSplit: rated.some(s => s.rate !== primaryRate), segments: rated };
+  }
+
+  // Single-day / no times
+  const rate = rateFor(dateStr);
   const inclVAT = hours * rate;
   const exclVAT = inclVAT / (1 + settings.vatRate);
-  return { inclVAT, exclVAT, isSat, isSun, isHoliday, rate };
+  return { inclVAT, exclVAT, isSat, isSun, isHoliday, rate, isSplit: false, segments: null };
 }
 
 function formatDate(dateStr) {
@@ -1404,7 +1451,7 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
     if (!form.date || !form.startTime || !form.endTime) return null;
     const hours = calcHours(form.startTime, form.endTime, Number(form.extraDays));
     if (hours <= 0) return null;
-    return { hours, ...calcEarnings(hours, form.date, settings) };
+    return { hours, ...calcEarnings(hours, form.date, settings, form.startTime, form.endTime, Number(form.extraDays)) };
   }, [form, settings]);
 
   function upd(k, v) { setForm(f => ({...f, [k]: v})); }
@@ -1574,10 +1621,26 @@ function AddEntryModal({ onClose, onSave, onSaveDraft, settings, editEntry }) {
               <span style={{color:'var(--text2)'}}>Hours worked</span>
               <span style={{fontWeight:600}}>{fmtNum(calc.hours,1)} hrs{Number(form.extraDays)>0 ? ` (${form.startTime} → +${form.extraDays}d ${form.endTime})` : ''}</span>
             </div>
-            <div className="calc-row">
-              <span style={{color:'var(--text2)'}}>{rateName} ({fmtDec(calc.rate)}/hr incl. VAT)</span>
-              <span style={{color:'var(--text2)'}}></span>
-            </div>
+            {calc.isSplit ? (
+              calc.segments.map((seg, i) => {
+                const segHol = isBelgianHoliday(seg.date);
+                const segWd  = getDayOfWeek(seg.date);
+                const segLabel = segHol ? getHolidayName(seg.date) : DUTCH_DAYS[segWd];
+                const segDate  = new Date(seg.date + 'T12:00:00').toLocaleDateString('nl-BE',{day:'numeric',month:'short'});
+                const segColor = (segWd===0||segHol) ? 'var(--purple)' : segWd===6 ? 'var(--blue)' : 'var(--text)';
+                return (
+                  <div key={i} className="calc-row">
+                    <span style={{color:'var(--text2)'}}>{segDate} · {segLabel} · {fmtNum(seg.hours,2)}h × {fmtDec(seg.rate)}/hr</span>
+                    <span style={{color:segColor}}>{fmtDec(seg.hours * seg.rate)}</span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="calc-row">
+                <span style={{color:'var(--text2)'}}>{rateName} ({fmtDec(calc.rate)}/hr incl. VAT)</span>
+                <span style={{color:'var(--text2)'}}></span>
+              </div>
+            )}
             <div className="calc-row">
               <span style={{color:'var(--text2)'}}>Earnings excl. VAT</span>
               <span>{fmtDec(calc.exclVAT)}</span>
